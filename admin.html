@@ -69,18 +69,14 @@ button:hover { box-shadow:0 0 15px #00ff00; }
 .collapsed { height:50px; overflow:hidden;}
 .activity-log { max-height:150px; overflow-y:auto; background:black;}
 .quick-links button { margin:3px 2px; }
-
-/* Theme Styles */
 body.green-theme { color:#00ff00; }
 body.green-theme header { border-color:#00ff00; }
 body.green-theme .server { border-color:#00ff00; }
 body.green-theme button { background:#00ff00; color:black; box-shadow:0 0 10px #00ff00; }
-
 body.purple-theme { color:#ff00ff; }
 body.purple-theme header { border-color:#ff00ff; }
 body.purple-theme .server { border-color:#ff00ff; }
 body.purple-theme button { background:#ff00ff; color:black; box-shadow:0 0 10px #ff00ff; }
-
 body.cyberpunk-theme { color:#0ff; }
 body.cyberpunk-theme header { border-color:#f0f; }
 body.cyberpunk-theme .server { border-color:#f0f; }
@@ -107,45 +103,45 @@ body.cyberpunk-theme button { background:#f0f; color:#0ff; box-shadow:0 0 10px #
 <button onclick="setTheme('cyberpunk')">Cyberpunk</button>
 </div>
 
-<!-- Add Server Form (Improved) -->
+<!-- Add Server Form (Fixed black background for inputs) -->
 <div class="add-server">
 <h3 style="text-align:center; color:#00ff00; margin-bottom:15px;">Add New Server</h3>
 
-<label>Server Name</label>
-<input type="text" id="newName" placeholder="Enter server name">
+<label style="color:#00ff00;">Server Name</label>
+<input type="text" id="newName" placeholder="Enter server name" style="background:black; color:#00ff00; border:2px solid #00ff00; padding:10px; border-radius:6px; width:100%; margin-bottom:10px;">
 
-<label>Address</label>
-<input type="text" id="newAddr" placeholder="Enter server address">
+<label style="color:#00ff00;">Address</label>
+<input type="text" id="newAddr" placeholder="Enter server address" style="background:black; color:#00ff00; border:2px solid #00ff00; padding:10px; border-radius:6px; width:100%; margin-bottom:10px;">
 
-<label>Port</label>
-<input type="text" id="newPort" placeholder="Optional port">
+<label style="color:#00ff00;">Port</label>
+<input type="text" id="newPort" placeholder="Optional port" style="background:black; color:#00ff00; border:2px solid #00ff00; padding:10px; border-radius:6px; width:100%; margin-bottom:10px;">
 
 <div style="display:flex; gap:10px; margin-bottom:10px;">
   <div style="flex:1;">
-    <label>Type</label>
-    <select id="newVerType">
+    <label style="color:#00ff00;">Type</label>
+    <select id="newVerType" style="background:black; color:#00ff00; border:2px solid #00ff00; padding:8px; border-radius:6px; width:100%;">
       <option value="">Select type</option>
       <option value="Java">Java</option>
       <option value="Bedrock">Bedrock</option>
     </select>
   </div>
   <div style="flex:1;">
-    <label>Status</label>
-    <select id="newStatus">
+    <label style="color:#00ff00;">Status</label>
+    <select id="newStatus" style="background:black; color:#00ff00; border:2px solid #00ff00; padding:8px; border-radius:6px; width:100%;">
       <option value="Online">Online</option>
       <option value="Offline">Offline</option>
     </select>
   </div>
 </div>
 
-<label>Version</label>
-<input type="text" id="newVersion" placeholder="Server version">
+<label style="color:#00ff00;">Version</label>
+<input type="text" id="newVersion" placeholder="Server version" style="background:black; color:#00ff00; border:2px solid #00ff00; padding:10px; border-radius:6px; width:100%; margin-bottom:10px;">
 
-<label>Description</label>
-<textarea id="newDesc" placeholder="Enter server description" style="height:80px;"></textarea>
+<label style="color:#00ff00;">Description</label>
+<textarea id="newDesc" placeholder="Enter server description" style="background:black; color:#00ff00; border:2px solid #00ff00; padding:10px; border-radius:6px; width:100%; height:80px; margin-bottom:10px;"></textarea>
 
-<label>Image URL</label>
-<input type="text" id="newImg" placeholder="Enter image URL">
+<label style="color:#00ff00;">Image URL</label>
+<input type="text" id="newImg" placeholder="Enter image URL" style="background:black; color:#00ff00; border:2px solid #00ff00; padding:10px; border-radius:6px; width:100%; margin-bottom:15px;">
 
 <button onclick="addServer()">Add Server</button>
 </div>
@@ -249,29 +245,36 @@ function renderServers(filter=''){
     let online=0, offline=0, java=0, bedrock=0;
     servers.forEach((s,i)=>{
         if(!s.name.toLowerCase().includes(filter.toLowerCase())) return;
-        const div=document.createElement('div'); div.className='server';
+        const div=document.createElement('div');
+        div.className='server';
         div.innerHTML=`
-        <span class="server-status ${s.status.toLowerCase()}"></span>
-        <strong>${s.name}</strong>
-        <div class="server-details">
-          <img src="${s.img}">
-          <input type="text" value="${s.addr}">
-          <input type="text" value="${s.port}">
-          <select><option value="Java" ${s.verType==='Java'?'selected':''}>Java</option><option value="Bedrock" ${s.verType==='Bedrock'?'selected':''}>Bedrock</option></select>
-          <button onclick="toggleStatus(${i})">Toggle Status</button>
-          <input type="text" value="${s.version||''}" placeholder="Version">
-          <textarea>${s.desc}</textarea>
-          <input type="text" value="${s.img}" placeholder="Image URL">
-          <button onclick="saveServer(${i}, this)">Save</button>
-          <button onclick="removeServer(${i})">Remove</button>
-          <button onclick="copyAddr(${i})">Copy Address</button>
-        </div>
+            <strong style="display:block;text-align:center;">${s.name}</strong>
+            <div style="text-align:center;">
+                <span class="server-status ${s.status.toLowerCase()}"></span>${s.status}
+            </div>
+            <img src="${s.img}" alt="${s.name}">
+            <div class="server-details">
+                <label>Address</label><input value="${s.addr}">
+                <label>Port</label><input value="${s.port}">
+                <label>Type</label>
+                <select>
+                    <option ${s.verType==='Java'?'selected':''}>Java</option>
+                    <option ${s.verType==='Bedrock'?'selected':''}>Bedrock</option>
+                </select>
+                <label>Version</label><input value="${s.version}">
+                <label>Description</label><textarea>${s.desc}</textarea>
+                <label>Image URL</label><input value="${s.img}">
+                <button onclick="saveServer(${i},this)">Save</button>
+                <button onclick="removeServer(${i})">Remove</button>
+                <button onclick="toggleStatus(${i})">Toggle Status</button>
+                <button onclick="copyAddr(${i})">Copy Address</button>
+            </div>
         `;
         serverList.appendChild(div);
         if(s.status==='Online') online++; else offline++;
         if(s.verType==='Java') java++; else if(s.verType==='Bedrock') bedrock++;
     });
-    statsDiv.innerHTML=`Total: ${servers.length}, Online: ${online}, Offline: ${offline}, Java: ${java}, Bedrock: ${bedrock}`;
+    statsDiv.innerHTML=`Total: ${servers.length} | Online: ${online} | Offline: ${offline} | Java: ${java} | Bedrock: ${bedrock}`;
 }
 
 // Add server
@@ -286,6 +289,7 @@ function addServer(){
         desc:document.getElementById('newDesc').value,
         img:document.getElementById('newImg').value
     };
+    if(!newS.name || !newS.addr) { toast('Name and Address required'); return; }
     servers.push(newS); localStorage.setItem('servers',JSON.stringify(servers));
     renderServers(searchInput.value); logActivity(`Server "${newS.name}" added`);
     toast('Server added!');
@@ -338,7 +342,7 @@ function toggleStatus(i){
 
 // Copy Address
 function copyAddr(i){
-    navigator.clipboard.writeText(servers[i].addr+ (servers[i].port ? ':'+servers[i].port:''));
+    navigator.clipboard.writeText(servers[i].addr+(servers[i].port? ':'+servers[i].port:''));
     toast('Address copied!');
 }
 
