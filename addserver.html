@@ -28,11 +28,11 @@
         <option value="Bedrock">Bedrock</option>
       </select>
       <input type="text" id="version" placeholder="Server Version (e.g. 1.20.1)" required>
-      <textarea id="desc" placeholder="Server Description" required></textarea>
       <select id="status" required>
         <option value="Online">Online</option>
         <option value="Offline">Offline</option>
       </select>
+      <textarea id="desc" placeholder="Server Description" required></textarea>
       <button type="submit">Add Server</button>
     </form>
   </main>
@@ -43,14 +43,16 @@
     if(userPass !== password){
       alert("Incorrect password. Access denied!");
       document.body.innerHTML="<h2 style='color:red;margin-top:50px;'>Access Denied</h2>";
-    } else { document.getElementById('mainForm').style.display='block'; }
+    } else {
+      document.getElementById('mainForm').style.display='block';
+    }
 
     const form = document.getElementById('serverForm');
     const imgFile = document.getElementById('imgFile');
     const preview = document.getElementById('preview');
     let imgData = '';
 
-    imgFile.addEventListener('change', e=>{
+    imgFile.addEventListener('change', e => {
       const file = e.target.files[0];
       if(!file) return;
       const reader = new FileReader();
@@ -62,21 +64,19 @@
       reader.readAsDataURL(file);
     });
 
-    form.addEventListener('submit', e=>{
+    form.addEventListener('submit', e => {
       e.preventDefault();
-      if(!imgData){ alert('Please select a server picture.'); return; }
       const servers = JSON.parse(localStorage.getItem('servers')||'[]');
-      const newServer = {
+      servers.push({
         name: form.name.value,
         img: imgData,
         addr: form.addr.value,
         port: form.port.value,
         verType: form.verType.value,
         version: form.version.value,
-        desc: form.desc.value,
-        status: form.status.value
-      };
-      servers.push(newServer);
+        status: form.status.value,
+        desc: form.desc.value
+      });
       localStorage.setItem('servers', JSON.stringify(servers));
       alert('Server added successfully!');
       form.reset();
