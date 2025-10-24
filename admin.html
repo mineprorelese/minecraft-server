@@ -65,8 +65,6 @@ button:hover { box-shadow:0 0 15px #00ff00; }
 .server-status.online { background:#0f0; }
 .server-status.offline { background:#f00; }
 @keyframes pulse {0%{transform:scale(1);}50%{transform:scale(1.4);}100%{transform:scale(1);}}
-.collapsed .server-details { display:none; }
-.collapsed { height:50px; overflow:hidden;}
 .activity-log { max-height:150px; overflow-y:auto; background:black;}
 .quick-links button { margin:3px 2px; }
 body.green-theme { color:#00ff00; }
@@ -138,7 +136,8 @@ body.cyberpunk-theme button { background:#f0f; color:#0ff; box-shadow:0 0 10px #
 <textarea id="newDesc" placeholder="Enter server description"></textarea>
 
 <label style="color:#00ff00;">Server Picture</label>
-<input type="file" id="newImgFile" accept="image/*">
+<input type="file" id="newImgFile" accept="image/*"
+       style="background:black; color:#00ff00; border:2px solid #00ff00; padding:10px; border-radius:6px; width:100%; cursor:pointer; margin-bottom:15px;">
 
 <button onclick="addServer()">Add Server</button>
 </div>
@@ -156,7 +155,7 @@ body.cyberpunk-theme button { background:#f0f; color:#0ff; box-shadow:0 0 10px #
 
 <div class="admin-message">
 <h3>Pinned Announcements</h3>
-<textarea id="adminNotes" placeholder="Write admin notes..."></textarea>
+<textarea id="adminNotes" placeholder="Write admin notes..." style="background:black; color:#00ff00; width:100%; height:80px;"></textarea>
 <button onclick="saveNotes()">Save Notes</button>
 </div>
 
@@ -196,6 +195,7 @@ function drawMatrix(){
 }
 setInterval(drawMatrix,50);
 
+// Toast & Activity
 function toast(msg){const div=document.createElement('div');div.className='toast';div.textContent=msg;toastContainer.appendChild(div);setTimeout(()=>div.remove(),3000);}
 function logActivity(msg){const time=new Date().toLocaleTimeString();const p=document.createElement('p');p.textContent=`[${time}] ${msg}`;activityLog.appendChild(p);}
 function saveNotes(){localStorage.setItem('adminNotes',document.getElementById('adminNotes').value);toast('Notes saved!');}
@@ -204,6 +204,7 @@ function setTheme(theme){document.body.className='';if(theme==='green') document
 setTheme(localStorage.getItem('adminTheme')||'green');
 function openPage(url){window.location.href=url;}
 
+// Render Servers
 function renderServers(filter=''){
     serverList.innerHTML=''; let online=0, offline=0, java=0, bedrock=0;
     servers.forEach((s,i)=>{
@@ -215,22 +216,16 @@ function renderServers(filter=''){
                 <span class="server-status ${s.status.toLowerCase()}"></span>${s.status}
             </div>
             <img src="${s.img}" alt="${s.name}">
-            <div class="server-details">
-                <label>Address</label><input value="${s.addr}">
-                <label>Port</label><input value="${s.port}">
-                <label>Type</label>
-                <select>
-                    <option ${s.verType==='Java'?'selected':''}>Java</option>
-                    <option ${s.verType==='Bedrock'?'selected':''}>Bedrock</option>
-                </select>
-                <label>Version</label><input value="${s.version}">
-                <label>Description</label><textarea>${s.desc}</textarea>
-                <label>Image</label><input value="${s.img}">
-                <button onclick="saveServer(${i},this)">Save</button>
-                <button onclick="removeServer(${i})">Remove</button>
-                <button onclick="toggleStatus(${i})">Toggle Status</button>
-                <button onclick="copyAddr(${i})">Copy Address</button>
-            </div>
+            <input value="${s.addr}" placeholder="Address">
+            <input value="${s.port}" placeholder="Port">
+            <select><option ${s.verType==='Java'?'selected':''}>Java</option><option ${s.verType==='Bedrock'?'selected':''}>Bedrock</option></select>
+            <input value="${s.version}" placeholder="Version">
+            <textarea>${s.desc}</textarea>
+            <input type="text" value="${s.img}" placeholder="Image Base64">
+            <button onclick="saveServer(${i},this)">Save</button>
+            <button onclick="removeServer(${i})">Remove</button>
+            <button onclick="toggleStatus(${i})">Toggle Status</button>
+            <button onclick="copyAddr(${i})">Copy Address</button>
         `;
         serverList.appendChild(div);
         if(s.status==='Online') online++; else offline++;
@@ -239,12 +234,13 @@ function renderServers(filter=''){
     statsDiv.innerHTML=`Total: ${servers.length} | Online: ${online} | Offline: ${offline} | Java: ${java} | Bedrock: ${bedrock}`;
 }
 
+// Add/Edit/Remove Functions
 function addServer(){
-    const fileInput = document.getElementById('newImgFile');
-    if(fileInput.files.length === 0){ toast('Please select an image'); return; }
-    const reader = new FileReader();
+    const fileInput=document.getElementById('newImgFile');
+    if(fileInput.files.length===0){ toast('Please select an image'); return; }
+    const reader=new FileReader();
     reader.onload=function(e){
-        const imgData = e.target.result;
+        const imgData=e.target.result;
         const newS={
             name:document.getElementById('newName').value,
             addr:document.getElementById('newAddr').value,
@@ -258,14 +254,10 @@ function addServer(){
         if(!newS.name||!newS.addr){toast('Name and Address required'); return;}
         servers.push(newS); localStorage.setItem('servers',JSON.stringify(servers));
         renderServers(searchInput.value); logActivity(`Server "${newS.name}" added`); toast('Server added!');
-        document.getElementById('newName').value='';
-        document.getElementById('newAddr').value='';
-        document.getElementById('newPort').value='';
-        document.getElementById('newVerType').value='';
-        document.getElementById('newStatus').value='Online';
-        document.getElementById('newVersion').value='';
-        document.getElementById('newDesc').value='';
-        fileInput.value='';
+        document.getElementById('newName').value=''; document.getElementById('newAddr').value='';
+        document.getElementById('newPort').value=''; document.getElementById('newVerType').value='';
+        document.getElementById('newStatus').value='Online'; document.getElementById('newVersion').value='';
+        document.getElementById('newDesc').value=''; fileInput.value='';
     };
     reader.readAsDataURL(fileInput.files[0]);
 }
@@ -275,12 +267,9 @@ function saveServer(i,btn){
     const inputs=div.querySelectorAll('input');
     const select=div.querySelector('select');
     const textarea=div.querySelector('textarea');
-    servers[i].addr=inputs[0].value;
-    servers[i].port=inputs[1].value;
-    servers[i].verType=select.value;
-    servers[i].version=inputs[2].value;
-    servers[i].desc=textarea.value;
-    servers[i].img=inputs[3].value;
+    servers[i].addr=inputs[0].value; servers[i].port=inputs[1].value;
+    servers[i].verType=select.value; servers[i].version=inputs[2].value;
+    servers[i].desc=textarea.value; servers[i].img=inputs[3].value;
     localStorage.setItem('servers',JSON.stringify(servers));
     renderServers(searchInput.value);
     logActivity(`Server "${servers[i].name}" saved`);
@@ -312,7 +301,5 @@ function copyAddr(i){
 searchInput.addEventListener('input',()=>renderServers(searchInput.value));
 renderServers();
 </script>
-
-</main>
 </body>
 </html>
