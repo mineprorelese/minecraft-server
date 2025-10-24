@@ -13,16 +13,17 @@ nav a:hover{text-decoration:underline;}
 main{ padding:20px; display:flex; flex-direction:column; align-items:center; min-height:80vh; }
 h2{ font-size:16px; margin-bottom:20px; }
 #server-list{ display:flex; flex-wrap:wrap; gap:20px; justify-content:center; width:100%; max-width:1200px; }
-.server{ background:rgba(30,30,30,0.85); width:220px; padding:15px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.5); cursor:pointer; transition:0.2s; text-align:center; }
+.server{ background:rgba(30,30,30,0.85); width:250px; padding:15px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.5); cursor:pointer; transition:0.2s; text-align:center; }
 .server:hover{ transform:translateY(-5px); box-shadow:0 8px 20px rgba(0,0,0,0.7); }
 .server img{ width:100px; height:100px; object-fit:cover; border-radius:10px; margin-bottom:10px; }
-form{ display:none; flex-direction:column; align-items:center; margin-top:20px; }
-input,textarea,select,button{ margin:5px 0; padding:10px; width:60%; border:none; border-radius:5px; font-family:inherit; font-size:10px; }
+.server p{ font-size:14px; word-break:break-word; } /* larger text for address */
+form{ display:none; flex-direction:column; align-items:center; margin-top:20px; background:rgba(0,0,0,0.85); padding:20px; border-radius:12px; width:300px; box-shadow:0 8px 20px rgba(0,0,0,0.7); }
+input,textarea,select,button{ margin:5px 0; padding:10px; width:100%; border:none; border-radius:5px; font-family:inherit; font-size:12px; }
 button{ background:#2e7d32; color:#fff; cursor:pointer; }
 button:hover{ background:#388e3c; }
 img.preview{ max-width:150px; margin-top:10px; border-radius:8px; display:none; }
 footer{ background:#111; color:#aaa; padding:10px; text-align:center; font-size:10px; margin-top:20px; width:100%; }
-@media(max-width:600px){ .server{ width:90%; } input,textarea,select,button{ width:90%; } }
+@media(max-width:600px){ .server{ width:90%; } form{ width:90%; } }
 </style>
 </head>
 <body>
@@ -78,7 +79,6 @@ const preview = document.getElementById('preview');
 let imgData = '';
 let editingIndex = null;
 
-// Render all servers
 function renderServers(){
     serverList.innerHTML = '';
     servers.forEach((s, i) => {
@@ -90,7 +90,6 @@ function renderServers(){
     });
 }
 
-// Select server for editing
 function selectServer(i){
     editingIndex = i;
     const s = servers[i];
@@ -104,9 +103,9 @@ function selectServer(i){
     preview.src = imgData;
     preview.style.display = 'block';
     editForm.style.display = 'flex';
+    document.body.style.background = 'rgba(0,0,0,0.5) url("https://i.imgur.com/fZ0oZqP.png") repeat';
 }
 
-// Image preview
 imgFile.addEventListener('change', e => {
     const file = e.target.files[0];
     if(!file) return;
@@ -115,7 +114,6 @@ imgFile.addEventListener('change', e => {
     reader.readAsDataURL(file);
 });
 
-// Save changes
 editForm.addEventListener('submit', e => {
     e.preventDefault();
     if(editingIndex === null) return;
@@ -130,10 +128,12 @@ editForm.addEventListener('submit', e => {
     };
     localStorage.setItem('servers', JSON.stringify(servers));
     alert('Server updated!');
-    renderServers();  // immediately update the list
+    renderServers();
     editForm.style.display = 'none';
     preview.style.display = 'none';
+    document.body.style.background = '#222 url("https://i.imgur.com/fZ0oZqP.png") repeat';
 });
+
 renderServers();
 </script>
 </body>
