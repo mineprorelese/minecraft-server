@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Add Server (Hidden)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Press Start 2P', cursive;
+      background: url('https://i.imgur.com/fZ0oZqP.png') repeat;
+      background-size: 64px;
+      color: #fff;
+      margin: 0;
+      text-align: center;
+    }
+    main {
+      margin-top: 60px;
+    }
+    input, textarea, select, button {
+      display: block;
+      margin: 10px auto;
+      padding: 10px;
+      width: 60%;
+      border: none;
+      border-radius: 5px;
+      font-family: inherit;
+      font-size: 10px;
+    }
+    button {
+      background: #2e7d32;
+      color: #fff;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #388e3c;
+    }
+    img.preview {
+      max-width: 150px;
+      margin-top: 10px;
+      border-radius: 8px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h2>Add New Server</h2>
+    <form id="serverForm">
+      <input type="text" id="name" placeholder="Server Name" required>
+      
+      <!-- File input for server picture -->
+      <input type="file" id="imgFile" accept="image/*" required>
+      <img id="preview" class="preview" alt="Image Preview">
+      
+      <input type="text" id="addr" placeholder="Server Address (Required)" required>
+      <input type="text" id="port" placeholder="Port (Optional)">
+      <select id="verType" required>
+        <option value="">Select Version Type</option>
+        <option value="Java">Java</option>
+        <option value="Bedrock">Bedrock</option>
+      </select>
+      <input type="text" id="version" placeholder="Server Version (e.g. 1.20.1)" required>
+      <textarea id="desc" placeholder="Server Description" required></textarea>
+      <button type="submit">Add Server</button>
+    </form>
+  </main>
+
+  <script>
+    const form = document.getElementById('serverForm');
+    const imgFile = document.getElementById('imgFile');
+    const preview = document.getElementById('preview');
+    let imgData = '';
+
+    // Show preview when file selected
+    imgFile.addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        imgData = event.target.result; // Base64 string
+        preview.src = imgData;
+        preview.style.display = 'block';
+      }
+      reader.readAsDataURL(file);
+    });
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      if (!imgData) {
+        alert('Please select a server picture.');
+        return;
+      }
+
+      const servers = JSON.parse(localStorage.getItem('servers') || '[]');
+      const newServer = {
+        name: form.name.value,
+        img: imgData,
+        addr: form.addr.value,
+        port: form.port.value,
+        verType: form.verType.value,
+        version: form.version.value,
+        desc: form.desc.value
+      };
+      servers.push(newServer);
+      localStorage.setItem('servers', JSON.stringify(servers));
+      alert('Server added successfully!');
+      form.reset();
+      preview.style.display = 'none';
+      imgData = '';
+    });
+  </script>
+</body>
+</html>
