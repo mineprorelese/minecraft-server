@@ -1,155 +1,115 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Edit Server (Hidden)</title>
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-  <style>
-    body { font-family: 'Press Start 2P', cursive; background:#111; color:#fff; text-align:center; margin:0; }
-    main { margin-top:50px; }
-    .server { background: rgba(50,50,50,0.9); margin:20px auto; padding:15px; width:70%; border-radius:10px; }
-    button { background:#1976d2; color:#fff; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; margin-top:5px;}
-    button:hover { background:#2196f3; }
-    input, textarea, select { display:block; margin:10px auto; padding:10px; width:60%; border-radius:5px; border:none; font-family:inherit; font-size:10px;}
-    img.preview { max-width:150px; margin-top:10px; border-radius:8px; display:block; margin-left:auto;margin-right:auto;}
-    form { margin-top:20px; background: rgba(30,30,30,0.85); padding:15px; border-radius:10px;}
-  </style>
+<meta charset="UTF-8">
+<title>Edit Server (Hidden)</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+body{ font-family:'Press Start 2P', cursive; background:#111 url('https://i.imgur.com/fZ0oZqP.png') repeat; background-size:64px; color:#fff; margin:0; text-align:center; }
+main{ margin-top:40px; }
+select,input,textarea,button{ display:block; margin:10px auto; padding:10px; width:60%; border:none; border-radius:5px; font-family:inherit; font-size:10px; }
+button{ background:#2e7d32; color:#fff; cursor:pointer; }
+button:hover{ background:#388e3c; }
+img.preview{ max-width:150px; margin-top:10px; border-radius:8px; display:none; }
+.server-select{ width:60%; margin-bottom:20px; }
+</style>
 </head>
 <body>
-  <main id="mainContent" style="display:none;">
-    <h2>Edit Servers</h2>
-    <div id="serverList"></div>
 
-    <form id="editForm" style="display:none;">
-      <h3>Edit Server</h3>
-      <input type="text" id="name" placeholder="Server Name" required>
-      <input type="file" id="imgFile" accept="image/*">
-      <img id="preview" class="preview" alt="Image Preview">
-      <input type="text" id="addr" placeholder="Server Address" required>
-      <input type="text" id="port" placeholder="Port (Optional)">
-      <select id="verType" required>
-        <option value="">Select Version Type</option>
-        <option value="Java">Java</option>
-        <option value="Bedrock">Bedrock</option>
-      </select>
-      <input type="text" id="version" placeholder="Server Version (e.g. 1.20.1)" required>
-      <select id="status" required>
-        <option value="Online">Online</option>
-        <option value="Offline">Offline</option>
-      </select>
-      <textarea id="desc" placeholder="Server Description" required></textarea>
-      <button type="submit">Save Changes</button>
-      <button type="button" id="cancelBtn" style="background:#d32f2f;margin-top:10px;">Cancel</button>
-    </form>
-  </main>
+<h2>Edit Server</h2>
+<div id="mainForm" style="display:none;">
+<select id="serverSelect" class="server-select"><option value="">Select a server</option></select>
+<form id="editForm">
+<input type="text" id="name" placeholder="Server Name" required>
+<input type="file" id="imgFile" accept="image/*">
+<img id="preview" class="preview">
+<input type="text" id="addr" placeholder="Server Address" required>
+<input type="text" id="port" placeholder="Port (Optional)">
+<select id="verType" required>
+<option value="">Select Version Type</option>
+<option value="Java">Java</option>
+<option value="Bedrock">Bedrock</option>
+</select>
+<input type="text" id="version" placeholder="Server Version (e.g. 1.20.1)" required>
+<textarea id="desc" placeholder="Server Description" required></textarea>
+<button type="submit">Save Changes</button>
+<button type="button" id="cancelBtn">Cancel</button>
+</form>
+</div>
 
-  <script>
-    const password = "0021";
-    let userPass = prompt("Enter password to access this page:");
-    if(userPass !== password){
-      alert("Incorrect password. Access denied!");
-      document.body.innerHTML="<h2 style='color:red;margin-top:50px;'>Access Denied</h2>";
-    } else {
-      document.getElementById('mainContent').style.display='block';
-    }
+<script>
+const password="0021";
+if(prompt("Enter password:")!==password){ alert("Access Denied!"); document.body.innerHTML="<h2 style='color:red;margin-top:50px;'>Access Denied</h2>"; }
+else{ document.getElementById('mainForm').style.display='block'; }
 
-    const serverListDiv = document.getElementById('serverList');
-    const editForm = document.getElementById('editForm');
-    const nameInput = document.getElementById('name');
-    const imgFile = document.getElementById('imgFile');
-    const preview = document.getElementById('preview');
-    const addrInput = document.getElementById('addr');
-    const portInput = document.getElementById('port');
-    const verTypeSelect = document.getElementById('verType');
-    const versionInput = document.getElementById('version');
-    const statusSelect = document.getElementById('status');
-    const descInput = document.getElementById('desc');
-    const cancelBtn = document.getElementById('cancelBtn');
+const servers=JSON.parse(localStorage.getItem('servers')||'[]');
+const serverSelect=document.getElementById('serverSelect');
+const editForm=document.getElementById('editForm');
+const nameInput=document.getElementById('name');
+const addrInput=document.getElementById('addr');
+const portInput=document.getElementById('port');
+const verTypeSelect=document.getElementById('verType');
+const versionInput=document.getElementById('version');
+const descInput=document.getElementById('desc');
+const imgFile=document.getElementById('imgFile');
+const preview=document.getElementById('preview');
+let imgData='';
+let editingIndex=null;
 
-    let servers = JSON.parse(localStorage.getItem('servers')||'[]');
-    let editingIndex = null;
-    let imgData = '';
+// Populate dropdown
+servers.forEach((s,i)=>{
+  const opt=document.createElement('option');
+  opt.value=i;
+  opt.textContent=s.name;
+  serverSelect.appendChild(opt);
+});
 
-    function renderServerList() {
-      serverListDiv.innerHTML = '';
-      if(servers.length===0){
-        serverListDiv.innerHTML='<p>No servers found.</p>';
-      } else {
-        servers.forEach((s,i)=>{
-          const div = document.createElement('div');
-          div.className='server';
-          div.innerHTML = `
-            <img src="${s.img}" alt="${s.name}">
-            <h3>${s.name}</h3>
-            <p><b>Status:</b> <span style="color:${s.status==='Online'?'limegreen':'red'}">${s.status}</span></p>
-            <p><b>Version:</b> ${s.verType} ${s.version ? '('+s.version+')':''}</p>
-            <p><b>Address:</b> ${s.addr}${s.port?':'+s.port:''}</p>
-            <button onclick="startEdit(${i})">Edit</button>
-          `;
-          serverListDiv.appendChild(div);
-        });
-      }
-    }
+// Select server to edit
+serverSelect.addEventListener('change',()=>{
+  const i=serverSelect.value;
+  if(i===''){ editForm.style.display='none'; return; }
+  editingIndex=i;
+  const s=servers[i];
+  nameInput.value=s.name;
+  addrInput.value=s.addr;
+  portInput.value=s.port;
+  verTypeSelect.value=s.verType;
+  versionInput.value=s.version;
+  descInput.value=s.desc;
+  imgData=s.img;
+  preview.src=imgData; preview.style.display='block';
+  editForm.style.display='block';
+});
 
-    window.startEdit = function(index){
-      editingIndex = index;
-      const s = servers[index];
-      nameInput.value = s.name;
-      addrInput.value = s.addr;
-      portInput.value = s.port;
-      verTypeSelect.value = s.verType;
-      versionInput.value = s.version;
-      statusSelect.value = s.status || 'Online';
-      descInput.value = s.desc;
-      imgData = s.img;
-      preview.src = imgData;
-      preview.style.display='block';
-      editForm.style.display='block';
-      window.scrollTo(0,0);
-    }
+imgFile.addEventListener('change',e=>{
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=function(ev){ imgData=ev.target.result; preview.src=imgData; preview.style.display='block'; }
+  reader.readAsDataURL(file);
+});
 
-    imgFile.addEventListener('change', e=>{
-      const file = e.target.files[0];
-      if(!file) return;
-      const reader = new FileReader();
-      reader.onload = function(event){
-        imgData = event.target.result;
-        preview.src = imgData;
-        preview.style.display='block';
-      }
-      reader.readAsDataURL(file);
-    });
+// Save changes
+editForm.addEventListener('submit',e=>{
+  e.preventDefault();
+  if(editingIndex===null) return;
+  servers[editingIndex]={
+    name:nameInput.value,
+    img:imgData,
+    addr:addrInput.value,
+    port:portInput.value,
+    verType:verTypeSelect.value,
+    version:versionInput.value,
+    desc:descInput.value
+  };
+  localStorage.setItem('servers',JSON.stringify(servers));
+  alert('Server updated!');
+  location.reload();
+});
 
-    editForm.addEventListener('submit', e=>{
-      e.preventDefault();
-      if(editingIndex===null) return;
-      servers[editingIndex] = {
-        name: nameInput.value,
-        img: imgData,
-        addr: addrInput.value,
-        port: portInput.value,
-        verType: verTypeSelect.value,
-        version: versionInput.value,
-        status: statusSelect.value,
-        desc: descInput.value
-      };
-      localStorage.setItem('servers',JSON.stringify(servers));
-      alert('Server updated successfully!');
-      editForm.style.display='none';
-      editingIndex = null;
-      imgFile.value = '';
-      preview.style.display='none';
-      renderServerList();
-    });
-
-    cancelBtn.addEventListener('click', ()=>{
-      editForm.style.display='none';
-      editingIndex=null;
-      imgFile.value='';
-      preview.style.display='none';
-    });
-
-    renderServerList();
-  </script>
+document.getElementById('cancelBtn').addEventListener('click',()=>{
+  editForm.style.display='none';
+  preview.style.display='none';
+});
+</script>
 </body>
 </html>
