@@ -1,87 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Servers - MineServer Network</title>
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-  <style>
-    body{ font-family:'Press Start 2P', cursive; background:#222 url('https://i.imgur.com/fZ0oZqP.png') repeat; background-size:64px; color:#fff; margin:0; }
-    header{ background:#2e7d32; padding:15px 20px; border-bottom:4px solid #1b5e20; display:flex; justify-content:space-between; flex-wrap:wrap; align-items:center;}
-    header h1{ font-size:22px; margin:0; }
-    nav a{ color:#fff; margin:0 10px; text-decoration:none; font-size:12px; transition:0.2s;}
-    nav a:hover{text-decoration:underline;}
-    main{ padding:30px 20px 80px; display:flex; flex-direction:column; align-items:center; }
-    h2{ margin-bottom:20px; font-size:16px; }
-    #server-list{ display:flex; flex-wrap:wrap; gap:20px; justify-content:center; width:100%; max-width:1200px; }
-    .server{ background:rgba(30,30,30,0.85); width:250px; padding:15px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.5); transition:0.2s; text-align:center; }
-    .server:hover{ transform:translateY(-5px); box-shadow:0 8px 20px rgba(0,0,0,0.7); }
-    .server img{ width:100px; height:100px; object-fit:cover; border-radius:10px; margin-bottom:10px; }
-    .server h3{ font-size:14px; margin:5px 0; word-break:break-word; }
-    .server p{ font-size:10px; margin:4px 0; line-height:1.2; word-break:break-word; }
-    .status{ font-weight:bold; }
-    .copy-btn{ margin-top:5px; padding:5px 8px; font-size:10px; background:#1976d2; color:#fff; border:none; border-radius:5px; cursor:pointer; }
-    .copy-btn:hover{ background:#2196f3; }
-    footer{ background:#111; color:#aaa; padding:10px; position:fixed; bottom:0; width:100%; font-size:10px; text-align:center; }
-    @media(max-width:600px){ .server{ width:90%; } }
-  </style>
+<meta charset="UTF-8">
+<title>Servers - MineServer Network</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+body{ font-family:'Press Start 2P', cursive; background:#222 url('https://i.imgur.com/fZ0oZqP.png') repeat; background-size:64px; color:#fff; margin:0; text-align:center; }
+header{ background:#2e7d32; padding:15px 0; border-bottom:4px solid #1b5e20; }
+nav a{ color:#fff; margin:0 15px; text-decoration:none; }
+nav a:hover{text-decoration:underline;}
+main{ margin-top:40px; }
+.server{ background:rgba(30,30,30,0.85); margin:25px auto; padding:15px; width:70%; border:3px solid #3a3a3a; border-radius:12px; box-shadow:0 0 10px #000; }
+.server img{ max-width:150px; border-radius:10px; margin-top:10px; }
+.server h3{ margin:5px 0; }
+.server p{ font-size:14px; word-break:break-word; }
+.status{ font-weight:bold; }
+.status.online{ color:#4caf50; }  /* green */
+.status.offline{ color:#f44336; } /* red */
+.copy-btn{ margin-top:5px; padding:5px 10px; border:none; border-radius:5px; cursor:pointer; background:#1976d2; color:#fff; }
+.copy-btn:hover{ background:#2196f3; }
+footer{ background:#111; color:#aaa; padding:10px; position:fixed; bottom:0; width:100%; font-size:10px; }
+</style>
 </head>
 <body>
-  <header>
-    <h1>MineServer Network</h1>
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="servers.html">Servers</a>
-    </nav>
-  </header>
+<header>
+<h1>Our Minecraft Servers</h1>
+<nav><a href="index.html">Home</a><a href="servers.html">Servers</a></nav>
+</header>
 
-  <main>
-    <h2>Our Minecraft Servers</h2>
-    <div id="server-list"></div>
-  </main>
+<main>
+<h2>Server List</h2>
+<div id="server-list"></div>
+</main>
 
-  <footer>© 2025 MineServer Network</footer>
+<footer>© 2025 MineServer Network</footer>
 
-  <script>
-    const servers = JSON.parse(localStorage.getItem('servers') || '[]');
-    const list = document.getElementById('server-list');
+<script>
+const servers = JSON.parse(localStorage.getItem('servers') || '[]');
+const list = document.getElementById('server-list');
 
-    function copyAddress(addr){
-      navigator.clipboard.writeText(addr).then(()=>{ alert(`Address copied: ${addr}`); });
-    }
-
-    function checkServerStatus(addr, port, callback){
-      port = port || 25565;
-      fetch(`https://api.mcsrvstat.us/2/${addr}:${port}`)
-        .then(res => res.json())
-        .then(data => { callback(data.online ? 'Online' : 'Offline'); })
-        .catch(err=>callback('Offline'));
-    }
-
-    function renderServers(){
-      list.innerHTML = '';
-      if(servers.length===0){ list.innerHTML='<p>No servers added yet.</p>'; return; }
-      servers.forEach(s=>{
-        const div = document.createElement('div'); div.className='server';
-        const fullAddress = s.addr + (s.port ? ':'+s.port : '');
+if(servers.length === 0){
+    list.innerHTML = '<p>No servers added yet.</p>';
+} else {
+    servers.forEach(s => {
+        const div = document.createElement('div');
+        div.className = 'server';
         div.innerHTML = `
-          <img src="${s.img}" alt="${s.name}">
-          <h3>${s.name}</h3>
-          <p><b>Status:</b> <span class="status">Checking...</span></p>
-          <p><b>Version:</b> ${s.verType || 'Unknown'} ${s.version ? '('+s.version+')' : ''}</p>
-          <p><b>Address:</b> ${fullAddress}</p>
-          <button class="copy-btn" onclick="copyAddress('${fullAddress}')">Copy Address</button>
-          <p><b>Description:</b> ${s.desc}</p>
+            <img src="${s.img}" alt="${s.name}">
+            <h3>${s.name}</h3>
+            <p>Version: ${s.version || 'Unknown'} (${s.verType || 'Unknown'})</p>
+            <p>Address: ${s.addr}${s.port ? ':' + s.port : ''}</p>
+            <p class="status ${s.status==='Online'?'online':'offline'}">${s.status || 'Offline'}</p>
+            <button class="copy-btn">Copy Address</button>
+            <p>${s.desc}</p>
         `;
-        list.appendChild(div);
-        const statusEl = div.querySelector('.status');
-        checkServerStatus(s.addr, s.port, function(status){
-          statusEl.textContent = status;
-          statusEl.style.color = status==='Online'?'limegreen':'red';
+        const btn = div.querySelector('.copy-btn');
+        btn.addEventListener('click', ()=>{
+            const addr = `${s.addr}${s.port ? ':' + s.port : ''}`;
+            navigator.clipboard.writeText(addr).then(()=>alert('Address copied!'));
         });
-      });
-    }
-
-    renderServers();
-  </script>
+        list.appendChild(div);
+    });
+}
+</script>
 </body>
 </html>
