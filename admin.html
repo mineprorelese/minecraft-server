@@ -10,134 +10,96 @@ body {
     margin: 0;
     background: black;
     color: #00ff00;
-    overflow-x: hidden;
-}
-canvas#matrix {
-    position: fixed;
-    top:0; left:0; z-index:-1;
+    text-align: center;
 }
 header {
     background-color: #111;
     border-bottom: 2px solid #00ff00;
     padding: 20px 0;
+}
+header h1 { font-size: 22px; margin: 0; }
+main { padding: 20px; max-width: 900px; margin: auto; }
+input, select, textarea, button {
+    font-family: 'Press Start 2P', cursive;
+    margin: 5px 0;
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #00ff00;
+    background: black;
+    color: #00ff00;
+    display: block;
+    width: 60%;
+    margin-left: auto;
+    margin-right: auto;
+}
+button { cursor: pointer; background: #00ff00; color: black; font-weight: bold; }
+button:hover { opacity: 0.8; }
+.server-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-top: 20px; }
+.server {
+    background: rgba(0,0,0,0.85);
+    border: 2px solid #00ff00;
+    padding: 10px;
+    border-radius: 8px;
+    width: 250px;
     text-align: center;
 }
-header h1 {
-    font-size: 22px;
-    margin: 0;
-    text-shadow: 0 0 5px #00ff00;
-    animation: glitch 2s infinite;
+.server img { width: 100px; height: 100px; object-fit: cover; margin-bottom: 5px; }
+.stats, .activity-log, .admin-message, .quick-links { 
+    border: 2px solid #00ff00; 
+    border-radius: 8px; 
+    padding: 10px; 
+    margin: 20px auto; 
+    max-width: 600px;
 }
-@keyframes glitch {
-    0%{text-shadow:0 0 5px #00ff00;}
-    20%{text-shadow:2px 0 #ff00ff;}
-    40%{text-shadow:-2px 0 #0ff;}
-    60%{text-shadow:2px 2px #ff00ff;}
-    80%{text-shadow:-2px -2px #0ff;}
-    100%{text-shadow:0 0 5px #00ff00;}
-}
-main { padding: 20px; max-width: 1200px; margin: auto; }
-.search-box input {
-    width: 300px; padding:8px; border:2px solid #00ff00; border-radius:5px;
-    background:black; color:#00ff00; font-family:'Press Start 2P', cursive; margin-bottom:15px;
-    display:block; margin-left:auto; margin-right:auto;
-}
-button {
-    padding:8px 12px; border:none; border-radius:5px; cursor:pointer;
-    background:#00ff00; color:black; font-weight:bold; transition:0.3s;
-}
-button:hover { box-shadow:0 0 15px #00ff00; }
-.add-server, .server-list, .stats, .admin-actions, .admin-message, .activity-log, .quick-links, .theme-toggle {
-    border:2px solid #00ff00; border-radius:8px; margin:20px auto; padding:15px; width:95%; max-width:600px; text-align:center;
-}
-.server-list { display:flex; flex-wrap:wrap; gap:15px; justify-content:center; }
-.server {
-    background: rgba(0,0,0,0.85); border:2px solid #00ff00; padding:10px; width:250px;
-    border-radius:10px; transition:0.3s; cursor:pointer; position:relative;
-}
-.server:hover { box-shadow:0 0 15px #00ff00; }
-.server img { width:100px; height:100px; object-fit:cover; border-radius:5px; display:block; margin:auto; }
-.server input, .server select, .server textarea { width:90%; margin:3px 0; padding:5px; border:1px solid #00ff00; border-radius:5px; background:black; color:#00ff00; font-family:'Press Start 2P', cursive; font-size:12px;}
-.toast-container { position: fixed; bottom:20px; right:20px; display:flex; flex-direction:column; gap:5px; z-index:9999;}
-.toast { background:#00ff00; color:black; padding:10px 15px; border-radius:5px; opacity:0.9; animation: fadeOut 3s forwards;}
-@keyframes fadeOut {0%{opacity:0.9;} 80%{opacity:0.9;} 100%{opacity:0;}}
-.server-status { width:12px; height:12px; border-radius:50%; display:inline-block; margin-right:5px; animation:pulse 2s infinite; }
-.server-status.online { background:#0f0; }
-.server-status.offline { background:#f00; }
-@keyframes pulse {0%{transform:scale(1);}50%{transform:scale(1.4);}100%{transform:scale(1);}}
-.activity-log { max-height:150px; overflow-y:auto; background:black; padding:5px;}
-.quick-links button { margin:3px 2px; }
-body.green-theme { color:#00ff00; }
-body.green-theme header { border-color:#00ff00; }
-body.green-theme .server { border-color:#00ff00; }
-body.green-theme button { background:#00ff00; color:black; box-shadow:0 0 10px #00ff00; }
-body.purple-theme { color:#ff00ff; }
-body.purple-theme header { border-color:#ff00ff; }
-body.purple-theme .server { border-color:#ff00ff; }
-body.purple-theme button { background:#ff00ff; color:black; box-shadow:0 0 10px #ff00ff; }
-body.cyberpunk-theme { color:#0ff; }
-body.cyberpunk-theme header { border-color:#f0f; }
-body.cyberpunk-theme .server { border-color:#f0f; }
-body.cyberpunk-theme button { background:#f0f; color:#0ff; box-shadow:0 0 10px #f0f; }
+textarea { height: 60px; }
 </style>
 </head>
 <body>
 
-<canvas id="matrix"></canvas>
-
 <header><h1>Admin Panel</h1></header>
 
 <main>
-<div class="search-box">
-  <input type="text" id="searchInput" placeholder="Search servers by name...">
-</div>
+<input type="text" id="searchInput" placeholder="Search servers by name...">
 
-<div class="theme-toggle">
-<h3>Theme</h3>
-<button onclick="setTheme('green')">Green</button>
-<button onclick="setTheme('purple')">Neon Purple</button>
-<button onclick="setTheme('cyberpunk')">Cyberpunk</button>
-</div>
-
-<!-- Centered Add Server Section with black background and browse image -->
 <div class="add-server">
-  <h3 style="color:#00ff00; margin-bottom:15px;">Add New Server</h3>
+<h3>Add New Server</h3>
 
-  <label style="color:#00ff00; display:block;">Server Name</label>
-  <input type="text" id="newName" placeholder="Enter server name">
+<label>Server Name</label>
+<input type="text" id="newName" placeholder="Enter server name">
 
-  <label style="color:#00ff00; display:block;">Address</label>
-  <input type="text" id="newAddr" placeholder="Enter server address">
+<label>Address</label>
+<input type="text" id="newAddr" placeholder="Enter server address">
 
-  <label style="color:#00ff00; display:block;">Port</label>
-  <input type="text" id="newPort" placeholder="Optional port">
+<label>Port</label>
+<input type="text" id="newPort" placeholder="Optional port">
 
-  <label style="color:#00ff00; display:block;">Type</label>
-  <select id="newVerType">
-    <option value="">Select type</option>
-    <option value="Java">Java</option>
-    <option value="Bedrock">Bedrock</option>
-  </select>
+<label>Type</label>
+<select id="newVerType">
+<option value="">Select type</option>
+<option value="Java">Java</option>
+<option value="Bedrock">Bedrock</option>
+</select>
 
-  <label style="color:#00ff00; display:block;">Status</label>
-  <select id="newStatus">
-    <option value="Online">Online</option>
-    <option value="Offline">Offline</option>
-  </select>
+<label>Status</label>
+<select id="newStatus">
+<option value="Online">Online</option>
+<option value="Offline">Offline</option>
+</select>
 
-  <label style="color:#00ff00; display:block;">Version</label>
-  <input type="text" id="newVersion" placeholder="Server version">
+<label>Version</label>
+<input type="text" id="newVersion" placeholder="Server version">
 
-  <label style="color:#00ff00; display:block;">Description</label>
-  <textarea id="newDesc" placeholder="Enter server description" style="height:60px;"></textarea>
+<label>Description</label>
+<textarea id="newDesc" placeholder="Enter server description"></textarea>
 
-  <label style="color:#00ff00; display:block;">Server Picture</label>
-  <input type="file" id="newImgFile" accept="image/*">
+<label>Server Picture</label>
+<input type="file" id="newImgFile" accept="image/*">
 
-  <button onclick="addServer()" style="margin-top:10px; width:50%;">Add Server</button>
+<button onclick="addServer()">Add Server</button>
 </div>
 
 <div class="server-list" id="server-list"></div>
+
 <div class="stats" id="stats"></div>
 
 <div class="quick-links">
@@ -148,66 +110,28 @@ body.cyberpunk-theme button { background:#f0f; color:#0ff; box-shadow:0 0 10px #
 </div>
 
 <div class="admin-message">
-<h3>Pinned Announcements</h3>
-<textarea id="adminNotes" placeholder="Write admin notes..." style="height:80px; background:black; color:#00ff00;"></textarea>
+<h3>Admin Notes</h3>
+<textarea id="adminNotes" placeholder="Write notes..." style="height:80px;"></textarea>
 <button onclick="saveNotes()">Save Notes</button>
 </div>
 
 <div class="activity-log" id="activityLog"><h3>Activity Log</h3></div>
-<div class="toast-container" id="toastContainer"></div>
 
 <script>
-// Admin password
 const password="0021";
 if(prompt("Enter admin password:")!==password){document.body.innerHTML="<h2 style='color:red;margin-top:50px;'>Access Denied</h2>";}
 
-// Storage & elements
 let servers=JSON.parse(localStorage.getItem('servers')||'[]');
 const serverList=document.getElementById('server-list');
 const searchInput=document.getElementById('searchInput');
-const statsDiv=document.getElementById('stats');
-const activityLog=document.getElementById('activityLog');
-const toastContainer=document.getElementById('toastContainer');
 
-// Matrix background
-const canvas=document.getElementById("matrix");
-const ctx=canvas.getContext("2d");
-canvas.width=window.innerWidth; canvas.height=window.innerHeight;
-const letters="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()*&^%";
-const fontSize=16;
-const columns=canvas.width/fontSize;
-const drops=[];
-for(let x=0;x<columns;x++) drops[x]=1;
-function drawMatrix(){
-    ctx.fillStyle="rgba(0,0,0,0.05)";
-    ctx.fillRect(0,0,canvas.width,canvas.height);
-    ctx.fillStyle="#0f0"; ctx.font=fontSize+"px monospace";
-    for(let i=0;i<drops.length;i++){
-        const text=letters.charAt(Math.floor(Math.random()*letters.length));
-        ctx.fillText(text,i*fontSize,drops[i]*fontSize);
-        if(drops[i]*fontSize>canvas.height && Math.random()>0.975) drops[i]=0;
-        drops[i]++;
-    }
-}
-setInterval(drawMatrix,50);
-
-// Toast & Activity
-function toast(msg){const div=document.createElement('div');div.className='toast';div.textContent=msg;toastContainer.appendChild(div);setTimeout(()=>div.remove(),3000);}
-function logActivity(msg){const time=new Date().toLocaleTimeString();const p=document.createElement('p');p.textContent=`[${time}] ${msg}`;activityLog.appendChild(p);}
-function saveNotes(){localStorage.setItem('adminNotes',document.getElementById('adminNotes').value);toast('Notes saved!');}
-document.getElementById('adminNotes').value=localStorage.getItem('adminNotes')||'';
-function setTheme(theme){document.body.className='';if(theme==='green') document.body.classList.add('green-theme');if(theme==='purple') document.body.classList.add('purple-theme');if(theme==='cyberpunk') document.body.classList.add('cyberpunk-theme');localStorage.setItem('adminTheme',theme);}
-setTheme(localStorage.getItem('adminTheme')||'green');
-function openPage(url){window.location.href=url;}
-
-// Render servers
 function renderServers(filter=""){
-    serverList.innerHTML=""; let online=0, offline=0, java=0, bedrock=0;
+    serverList.innerHTML="";
     servers.filter(s=>s.name.toLowerCase().includes(filter.toLowerCase())).forEach((s,i)=>{
         const div=document.createElement('div'); div.className='server';
         div.innerHTML=`
             <h4>${s.name}</h4>
-            <div><span class="server-status ${s.status.toLowerCase()}"></span>${s.status}</div>
+            <div>Status: ${s.status}</div>
             <img src="${s.img}">
             <input value="${s.addr}">
             <input value="${s.port}">
@@ -221,13 +145,8 @@ function renderServers(filter=""){
             <button onclick="toggleStatus(${i})">Toggle Status</button>
         `;
         serverList.appendChild(div);
-        if(s.status==='Online') online++; else offline++;
-        if(s.verType==='Java') java++; else if(s.verType==='Bedrock') bedrock++;
     });
-    statsDiv.innerHTML=`Total Servers: ${servers.length} | Online: ${online} | Offline: ${offline} | Java: ${java} | Bedrock: ${bedrock}`;
 }
-function copyAddr(i){navigator.clipboard.writeText(servers[i].addr+(servers[i].port?':'+servers[i].port:''));toast('Address copied');}
-function toggleStatus(i){servers[i].status=servers[i].status==='Online'?'Offline':'Online';localStorage.setItem('servers',JSON.stringify(servers));renderServers(searchInput.value);logActivity(`Toggled status of ${servers[i].name} to ${servers[i].status}`);}
 function addServer(){
     const name=document.getElementById('newName').value;
     const addr=document.getElementById('newAddr').value;
@@ -237,14 +156,13 @@ function addServer(){
     const version=document.getElementById('newVersion').value;
     const desc=document.getElementById('newDesc').value;
     const fileInput=document.getElementById('newImgFile');
-    if(!name||!addr||!verType||!status||!version||!desc||fileInput.files.length===0){toast('Please fill all fields and choose an image');return;}
+    if(!name||!addr||!verType||!status||!version||!desc||fileInput.files.length===0){alert('Please fill all fields and choose an image');return;}
     const reader=new FileReader();
     reader.onload=function(e){
         servers.push({name, addr, port, verType, status, version, desc, img:e.target.result});
         localStorage.setItem('servers',JSON.stringify(servers));
         renderServers(searchInput.value);
-        logActivity(`Added new server ${name}`);
-        toast('Server added!');
+        alert('Server added!');
         document.getElementById('newName').value='';
         document.getElementById('newAddr').value='';
         document.getElementById('newPort').value='';
@@ -256,6 +174,12 @@ function addServer(){
     };
     reader.readAsDataURL(fileInput.files[0]);
 }
+
+function copyAddr(i){navigator.clipboard.writeText(servers[i].addr+(servers[i].port?':'+servers[i].port:''));alert('Address copied');}
+function toggleStatus(i){servers[i].status=servers[i].status==='Online'?'Offline':'Online';localStorage.setItem('servers',JSON.stringify(servers));renderServers(searchInput.value);}
+function openPage(url){window.location.href=url;}
+function saveNotes(){localStorage.setItem('adminNotes',document.getElementById('adminNotes').value);alert('Notes saved!');}
+document.getElementById('adminNotes').value=localStorage.getItem('adminNotes')||'';
 
 searchInput.addEventListener('input',()=>renderServers(searchInput.value));
 renderServers();
