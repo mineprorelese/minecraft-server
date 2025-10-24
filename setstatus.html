@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Set Server Status - MineServer Network</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+body{ font-family:'Press Start 2P', cursive; background:#222 url('https://i.imgur.com/fZ0oZqP.png') repeat; background-size:64px; color:#fff; margin:0; text-align:center; }
+header{ background:#1976d2; padding:15px; }
+header h1{ font-size:18px; margin:0; }
+#server-list{ display:flex; flex-wrap:wrap; gap:20px; justify-content:center; padding:20px; }
+.server{ background:rgba(30,30,30,0.85); width:250px; padding:15px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.5); text-align:center; }
+.server img{ width:100px; height:100px; object-fit:cover; border-radius:10px; margin-bottom:10px; }
+.server h3{ margin:5px 0; }
+.server p{ font-size:14px; word-break:break-word; }
+button.status-btn{ padding:5px 10px; margin-top:5px; border:none; border-radius:5px; cursor:pointer; font-size:12px; background:#1976d2; color:#fff; }
+button.status-btn:hover{ background:#2196f3; }
+</style>
+</head>
+<body>
+<header><h1>Set Server Status</h1></header>
+<div id="server-list"></div>
+
+<script>
+const password="0021";
+if(prompt("Enter password:")!==password){ 
+    alert("Access Denied"); 
+    document.body.innerHTML="<h2 style='color:red;margin-top:50px;'>Access Denied</h2>"; 
+}
+
+let servers = JSON.parse(localStorage.getItem('servers') || '[]');
+const serverList = document.getElementById('server-list');
+
+function renderServers(){
+    serverList.innerHTML='';
+    servers.forEach((s,i)=>{
+        const div = document.createElement('div');
+        div.className='server';
+        div.innerHTML = `<img src="${s.img}" alt="${s.name}"><h3>${s.name}</h3><p>Status: <span>${s.status||"Offline"}</span></p><button class="status-btn">Toggle Status</button>`;
+        const btn = div.querySelector('.status-btn');
+        const statusSpan = div.querySelector('span');
+        btn.addEventListener('click', ()=>{
+            s.status = s.status==="Online"?"Offline":"Online";
+            statusSpan.textContent = s.status;
+            localStorage.setItem('servers', JSON.stringify(servers));
+        });
+        serverList.appendChild(div);
+    });
+}
+
+renderServers();
+</script>
+</body>
+</html>
