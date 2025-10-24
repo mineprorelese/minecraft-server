@@ -90,12 +90,10 @@ body.cyberpunk-theme button { background:#f0f; color:#0ff; box-shadow:0 0 10px #
 <header><h1>Admin Panel</h1></header>
 
 <main>
-<!-- Search Box (Centered) -->
 <div class="search-box">
   <input type="text" id="searchInput" placeholder="Search servers by name...">
 </div>
 
-<!-- Theme Toggle -->
 <div class="theme-toggle">
 <h3>Theme</h3>
 <button onclick="setTheme('green')">Green</button>
@@ -103,23 +101,22 @@ body.cyberpunk-theme button { background:#f0f; color:#0ff; box-shadow:0 0 10px #
 <button onclick="setTheme('cyberpunk')">Cyberpunk</button>
 </div>
 
-<!-- Add Server Form (Fixed black background for inputs) -->
 <div class="add-server">
 <h3 style="text-align:center; color:#00ff00; margin-bottom:15px;">Add New Server</h3>
 
 <label style="color:#00ff00;">Server Name</label>
-<input type="text" id="newName" placeholder="Enter server name" style="background:black; color:#00ff00; border:2px solid #00ff00; padding:10px; border-radius:6px; width:100%; margin-bottom:10px;">
+<input type="text" id="newName" placeholder="Enter server name">
 
 <label style="color:#00ff00;">Address</label>
-<input type="text" id="newAddr" placeholder="Enter server address" style="background:black; color:#00ff00; border:2px solid #00ff00; padding:10px; border-radius:6px; width:100%; margin-bottom:10px;">
+<input type="text" id="newAddr" placeholder="Enter server address">
 
 <label style="color:#00ff00;">Port</label>
-<input type="text" id="newPort" placeholder="Optional port" style="background:black; color:#00ff00; border:2px solid #00ff00; padding:10px; border-radius:6px; width:100%; margin-bottom:10px;">
+<input type="text" id="newPort" placeholder="Optional port">
 
 <div style="display:flex; gap:10px; margin-bottom:10px;">
   <div style="flex:1;">
     <label style="color:#00ff00;">Type</label>
-    <select id="newVerType" style="background:black; color:#00ff00; border:2px solid #00ff00; padding:8px; border-radius:6px; width:100%;">
+    <select id="newVerType">
       <option value="">Select type</option>
       <option value="Java">Java</option>
       <option value="Bedrock">Bedrock</option>
@@ -127,7 +124,7 @@ body.cyberpunk-theme button { background:#f0f; color:#0ff; box-shadow:0 0 10px #
   </div>
   <div style="flex:1;">
     <label style="color:#00ff00;">Status</label>
-    <select id="newStatus" style="background:black; color:#00ff00; border:2px solid #00ff00; padding:8px; border-radius:6px; width:100%;">
+    <select id="newStatus">
       <option value="Online">Online</option>
       <option value="Offline">Offline</option>
     </select>
@@ -135,24 +132,21 @@ body.cyberpunk-theme button { background:#f0f; color:#0ff; box-shadow:0 0 10px #
 </div>
 
 <label style="color:#00ff00;">Version</label>
-<input type="text" id="newVersion" placeholder="Server version" style="background:black; color:#00ff00; border:2px solid #00ff00; padding:10px; border-radius:6px; width:100%; margin-bottom:10px;">
+<input type="text" id="newVersion" placeholder="Server version">
 
 <label style="color:#00ff00;">Description</label>
-<textarea id="newDesc" placeholder="Enter server description" style="background:black; color:#00ff00; border:2px solid #00ff00; padding:10px; border-radius:6px; width:100%; height:80px; margin-bottom:10px;"></textarea>
+<textarea id="newDesc" placeholder="Enter server description"></textarea>
 
-<label style="color:#00ff00;">Image URL</label>
-<input type="text" id="newImg" placeholder="Enter image URL" style="background:black; color:#00ff00; border:2px solid #00ff00; padding:10px; border-radius:6px; width:100%; margin-bottom:15px;">
+<label style="color:#00ff00;">Server Picture</label>
+<input type="file" id="newImgFile" accept="image/*">
 
 <button onclick="addServer()">Add Server</button>
 </div>
 
-<!-- Server List -->
 <div class="server-list" id="server-list"></div>
 
-<!-- Statistics -->
 <div class="stats" id="stats"></div>
 
-<!-- Quick Links -->
 <div class="quick-links">
 <h3>Quick Links</h3>
 <button onclick="openPage('editserver.html')">Edit Server</button>
@@ -160,25 +154,19 @@ body.cyberpunk-theme button { background:#f0f; color:#0ff; box-shadow:0 0 10px #
 <button onclick="openPage('setstatus.html')">Set Status</button>
 </div>
 
-<!-- Admin Notes -->
 <div class="admin-message">
 <h3>Pinned Announcements</h3>
-<textarea id="adminNotes" placeholder="Write admin notes..." style="width:100%; height:150px; background:black; color:#00ff00; font-family:'Press Start 2P', cursive; font-size:14px; padding:10px; border:2px solid #00ff00; border-radius:8px;"></textarea>
+<textarea id="adminNotes" placeholder="Write admin notes..."></textarea>
 <button onclick="saveNotes()">Save Notes</button>
 </div>
 
-<!-- Activity Log -->
 <div class="activity-log" id="activityLog"><h3>Activity Log</h3></div>
-
-<!-- Toast container -->
 <div class="toast-container" id="toastContainer"></div>
 
 <script>
-// Admin password
 const password="0021";
 if(prompt("Enter admin password:")!==password){document.body.innerHTML="<h2 style='color:red;margin-top:50px;'>Access Denied</h2>";}
 
-// Data
 let servers = JSON.parse(localStorage.getItem('servers')||'[]');
 const serverList=document.getElementById('server-list');
 const searchInput=document.getElementById('searchInput');
@@ -208,45 +196,19 @@ function drawMatrix(){
 }
 setInterval(drawMatrix,50);
 
-// Toast
 function toast(msg){const div=document.createElement('div');div.className='toast';div.textContent=msg;toastContainer.appendChild(div);setTimeout(()=>div.remove(),3000);}
-
-// Activity log
-function logActivity(msg){
-    const time=new Date().toLocaleTimeString();
-    const p=document.createElement('p'); p.textContent=`[${time}] ${msg}`;
-    activityLog.appendChild(p);
-}
-
-// Admin notes
-function saveNotes(){
-    localStorage.setItem('adminNotes',document.getElementById('adminNotes').value);
-    toast('Notes saved!');
-}
+function logActivity(msg){const time=new Date().toLocaleTimeString();const p=document.createElement('p');p.textContent=`[${time}] ${msg}`;activityLog.appendChild(p);}
+function saveNotes(){localStorage.setItem('adminNotes',document.getElementById('adminNotes').value);toast('Notes saved!');}
 document.getElementById('adminNotes').value=localStorage.getItem('adminNotes')||'';
-
-// Theme
-function setTheme(theme){
-    document.body.className='';
-    if(theme==='green') document.body.classList.add('green-theme');
-    if(theme==='purple') document.body.classList.add('purple-theme');
-    if(theme==='cyberpunk') document.body.classList.add('cyberpunk-theme');
-    localStorage.setItem('adminTheme',theme);
-}
-const savedTheme=localStorage.getItem('adminTheme')||'green';
-setTheme(savedTheme);
-
-// Open hidden pages
+function setTheme(theme){document.body.className='';if(theme==='green') document.body.classList.add('green-theme');if(theme==='purple') document.body.classList.add('purple-theme');if(theme==='cyberpunk') document.body.classList.add('cyberpunk-theme');localStorage.setItem('adminTheme',theme);}
+setTheme(localStorage.getItem('adminTheme')||'green');
 function openPage(url){window.location.href=url;}
 
-// Render servers
 function renderServers(filter=''){
-    serverList.innerHTML='';
-    let online=0, offline=0, java=0, bedrock=0;
+    serverList.innerHTML=''; let online=0, offline=0, java=0, bedrock=0;
     servers.forEach((s,i)=>{
         if(!s.name.toLowerCase().includes(filter.toLowerCase())) return;
-        const div=document.createElement('div');
-        div.className='server';
+        const div=document.createElement('div'); div.className='server';
         div.innerHTML=`
             <strong style="display:block;text-align:center;">${s.name}</strong>
             <div style="text-align:center;">
@@ -263,7 +225,7 @@ function renderServers(filter=''){
                 </select>
                 <label>Version</label><input value="${s.version}">
                 <label>Description</label><textarea>${s.desc}</textarea>
-                <label>Image URL</label><input value="${s.img}">
+                <label>Image</label><input value="${s.img}">
                 <button onclick="saveServer(${i},this)">Save</button>
                 <button onclick="removeServer(${i})">Remove</button>
                 <button onclick="toggleStatus(${i})">Toggle Status</button>
@@ -277,33 +239,37 @@ function renderServers(filter=''){
     statsDiv.innerHTML=`Total: ${servers.length} | Online: ${online} | Offline: ${offline} | Java: ${java} | Bedrock: ${bedrock}`;
 }
 
-// Add server
 function addServer(){
-    const newS={
-        name:document.getElementById('newName').value,
-        addr:document.getElementById('newAddr').value,
-        port:document.getElementById('newPort').value,
-        verType:document.getElementById('newVerType').value,
-        status:document.getElementById('newStatus').value,
-        version:document.getElementById('newVersion').value,
-        desc:document.getElementById('newDesc').value,
-        img:document.getElementById('newImg').value
+    const fileInput = document.getElementById('newImgFile');
+    if(fileInput.files.length === 0){ toast('Please select an image'); return; }
+    const reader = new FileReader();
+    reader.onload=function(e){
+        const imgData = e.target.result;
+        const newS={
+            name:document.getElementById('newName').value,
+            addr:document.getElementById('newAddr').value,
+            port:document.getElementById('newPort').value,
+            verType:document.getElementById('newVerType').value,
+            status:document.getElementById('newStatus').value,
+            version:document.getElementById('newVersion').value,
+            desc:document.getElementById('newDesc').value,
+            img: imgData
+        };
+        if(!newS.name||!newS.addr){toast('Name and Address required'); return;}
+        servers.push(newS); localStorage.setItem('servers',JSON.stringify(servers));
+        renderServers(searchInput.value); logActivity(`Server "${newS.name}" added`); toast('Server added!');
+        document.getElementById('newName').value='';
+        document.getElementById('newAddr').value='';
+        document.getElementById('newPort').value='';
+        document.getElementById('newVerType').value='';
+        document.getElementById('newStatus').value='Online';
+        document.getElementById('newVersion').value='';
+        document.getElementById('newDesc').value='';
+        fileInput.value='';
     };
-    if(!newS.name || !newS.addr) { toast('Name and Address required'); return; }
-    servers.push(newS); localStorage.setItem('servers',JSON.stringify(servers));
-    renderServers(searchInput.value); logActivity(`Server "${newS.name}" added`);
-    toast('Server added!');
-    document.getElementById('newName').value='';
-    document.getElementById('newAddr').value='';
-    document.getElementById('newPort').value='';
-    document.getElementById('newVerType').value='';
-    document.getElementById('newStatus').value='Online';
-    document.getElementById('newVersion').value='';
-    document.getElementById('newDesc').value='';
-    document.getElementById('newImg').value='';
+    reader.readAsDataURL(fileInput.files[0]);
 }
 
-// Save server
 function saveServer(i,btn){
     const div=btn.parentElement;
     const inputs=div.querySelectorAll('input');
@@ -321,7 +287,6 @@ function saveServer(i,btn){
     toast('Server saved!');
 }
 
-// Remove server
 function removeServer(i){
     if(!confirm('Remove server '+servers[i].name+'?')) return;
     logActivity(`Server "${servers[i].name}" removed`);
@@ -331,7 +296,6 @@ function removeServer(i){
     toast('Server removed!');
 }
 
-// Toggle Status
 function toggleStatus(i){
     servers[i].status=(servers[i].status==='Online')?'Offline':'Online';
     localStorage.setItem('servers',JSON.stringify(servers));
@@ -340,16 +304,12 @@ function toggleStatus(i){
     toast(`Server "${servers[i].name}" is now ${servers[i].status}`);
 }
 
-// Copy Address
 function copyAddr(i){
     navigator.clipboard.writeText(servers[i].addr+(servers[i].port? ':'+servers[i].port:''));
     toast('Address copied!');
 }
 
-// Search
 searchInput.addEventListener('input',()=>renderServers(searchInput.value));
-
-// Initial render
 renderServers();
 </script>
 
