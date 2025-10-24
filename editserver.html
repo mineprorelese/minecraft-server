@@ -33,6 +33,10 @@
         <option value="Bedrock">Bedrock</option>
       </select>
       <input type="text" id="version" placeholder="Server Version (e.g. 1.20.1)" required>
+      <select id="status" required>
+        <option value="Online">Online</option>
+        <option value="Offline">Offline</option>
+      </select>
       <textarea id="desc" placeholder="Server Description" required></textarea>
       <button type="submit">Save Changes</button>
       <button type="button" id="cancelBtn" style="background:#d32f2f;margin-top:10px;">Cancel</button>
@@ -58,6 +62,7 @@
     const portInput = document.getElementById('port');
     const verTypeSelect = document.getElementById('verType');
     const versionInput = document.getElementById('version');
+    const statusSelect = document.getElementById('status');
     const descInput = document.getElementById('desc');
     const cancelBtn = document.getElementById('cancelBtn');
 
@@ -76,6 +81,7 @@
           div.innerHTML = `
             <img src="${s.img}" alt="${s.name}">
             <h3>${s.name}</h3>
+            <p><b>Status:</b> <span style="color:${s.status==='Online'?'limegreen':'red'}">${s.status}</span></p>
             <p><b>Version:</b> ${s.verType} ${s.version ? '('+s.version+')':''}</p>
             <p><b>Address:</b> ${s.addr}${s.port?':'+s.port:''}</p>
             <button onclick="startEdit(${i})">Edit</button>
@@ -93,6 +99,7 @@
       portInput.value = s.port;
       verTypeSelect.value = s.verType;
       versionInput.value = s.version;
+      statusSelect.value = s.status || 'Online';
       descInput.value = s.desc;
       imgData = s.img;
       preview.src = imgData;
@@ -123,6 +130,7 @@
         port: portInput.value,
         verType: verTypeSelect.value,
         version: versionInput.value,
+        status: statusSelect.value,
         desc: descInput.value
       };
       localStorage.setItem('servers',JSON.stringify(servers));
