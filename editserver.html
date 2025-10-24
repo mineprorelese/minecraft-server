@@ -58,66 +58,82 @@ footer{ background:#111; color:#aaa; padding:10px; text-align:center; font-size:
 
 <script>
 const password="0021";
-if(prompt("Enter password:")!==password){ alert("Access Denied"); document.body.innerHTML="<h2 style='color:red;margin-top:50px;'>Access Denied</h2>"; }
-
-let servers=JSON.parse(localStorage.getItem('servers')||'[]');
-const serverList=document.getElementById('server-list');
-const editForm=document.getElementById('editForm');
-const nameInput=document.getElementById('name');
-const addrInput=document.getElementById('addr');
-const portInput=document.getElementById('port');
-const verTypeSelect=document.getElementById('verType');
-const versionInput=document.getElementById('version');
-const descInput=document.getElementById('desc');
-const imgFile=document.getElementById('imgFile');
-const preview=document.getElementById('preview');
-let imgData='';
-let editingIndex=null;
-
-// Render servers
-function renderServers(){
-  serverList.innerHTML='';
-  servers.forEach((s,i)=>{
-    const div=document.createElement('div'); div.className='server';
-    div.innerHTML=`<img src="${s.img}" alt="${s.name}"><h3>${s.name}</h3><p>${s.addr}${s.port?':'+s.port:''}</p>`;
-    div.addEventListener('click',()=>selectServer(i));
-    serverList.appendChild(div);
-  });
+if(prompt("Enter password:")!==password){ 
+    alert("Access Denied"); 
+    document.body.innerHTML="<h2 style='color:red;margin-top:50px;'>Access Denied</h2>"; 
 }
 
-// Select server
+let servers = JSON.parse(localStorage.getItem('servers') || '[]');
+const serverList = document.getElementById('server-list');
+const editForm = document.getElementById('editForm');
+const nameInput = document.getElementById('name');
+const addrInput = document.getElementById('addr');
+const portInput = document.getElementById('port');
+const verTypeSelect = document.getElementById('verType');
+const versionInput = document.getElementById('version');
+const descInput = document.getElementById('desc');
+const imgFile = document.getElementById('imgFile');
+const preview = document.getElementById('preview');
+
+let imgData = '';
+let editingIndex = null;
+
+// Render all servers
+function renderServers(){
+    serverList.innerHTML = '';
+    servers.forEach((s, i) => {
+        const div = document.createElement('div');
+        div.className = 'server';
+        div.innerHTML = `<img src="${s.img}" alt="${s.name}"><h3>${s.name}</h3><p>${s.addr}${s.port?':'+s.port:''}</p>`;
+        div.addEventListener('click', () => selectServer(i));
+        serverList.appendChild(div);
+    });
+}
+
+// Select server for editing
 function selectServer(i){
-  editingIndex=i;
-  const s=servers[i];
-  nameInput.value=s.name;
-  addrInput.value=s.addr;
-  portInput.value=s.port;
-  verTypeSelect.value=s.verType;
-  versionInput.value=s.version;
-  descInput.value=s.desc;
-  imgData=s.img;
-  preview.src=imgData; preview.style.display='block';
-  editForm.style.display='flex';
+    editingIndex = i;
+    const s = servers[i];
+    nameInput.value = s.name;
+    addrInput.value = s.addr;
+    portInput.value = s.port;
+    verTypeSelect.value = s.verType;
+    versionInput.value = s.version;
+    descInput.value = s.desc;
+    imgData = s.img;
+    preview.src = imgData;
+    preview.style.display = 'block';
+    editForm.style.display = 'flex';
 }
 
 // Image preview
-imgFile.addEventListener('change',e=>{
-  const file=e.target.files[0]; if(!file) return;
-  const reader=new FileReader();
-  reader.onload=ev=>{ imgData=ev.target.result; preview.src=imgData; preview.style.display='block'; }
-  reader.readAsDataURL(file);
+imgFile.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => { imgData = ev.target.result; preview.src = imgData; preview.style.display='block'; }
+    reader.readAsDataURL(file);
 });
 
 // Save changes
-editForm.addEventListener('submit',e=>{
-  e.preventDefault();
-  if(editingIndex===null) return;
-  servers[editingIndex]={name:nameInput.value,img:imgData,addr:addrInput.value,port:portInput.value,verType:verTypeSelect.value,version:versionInput.value,desc:descInput.value};
-  localStorage.setItem('servers',JSON.stringify(servers));
-  alert('Server updated!');
-  location.reload();
+editForm.addEventListener('submit', e => {
+    e.preventDefault();
+    if(editingIndex === null) return;
+    servers[editingIndex] = {
+        name: nameInput.value,
+        img: imgData,
+        addr: addrInput.value,
+        port: portInput.value,
+        verType: verTypeSelect.value,
+        version: versionInput.value,
+        desc: descInput.value
+    };
+    localStorage.setItem('servers', JSON.stringify(servers));
+    alert('Server updated!');
+    renderServers();  // immediately update the list
+    editForm.style.display = 'none';
+    preview.style.display = 'none';
 });
-
 renderServers();
 </script>
 </body>
