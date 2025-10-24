@@ -43,7 +43,7 @@
   </style>
 </head>
 <body>
-  <main>
+  <main id="mainForm" style="display:none;">
     <h2>Add New Server</h2>
     <form id="serverForm">
       <input type="text" id="name" placeholder="Server Name" required>
@@ -66,12 +66,22 @@
   </main>
 
   <script>
+    // Password protection
+    const password = "0021";
+    let userPass = prompt("Enter password to access this page:");
+    if (userPass !== password) {
+      alert("Incorrect password. Access denied!");
+      document.body.innerHTML = "<h2 style='color:red;margin-top:50px;'>Access Denied</h2>";
+    } else {
+      document.getElementById('mainForm').style.display = 'block';
+    }
+
+    // Image upload preview
     const form = document.getElementById('serverForm');
     const imgFile = document.getElementById('imgFile');
     const preview = document.getElementById('preview');
     let imgData = '';
 
-    // Show preview when file selected
     imgFile.addEventListener('change', e => {
       const file = e.target.files[0];
       if (!file) return;
