@@ -139,10 +139,12 @@ const searchInput=document.getElementById('searchInput');
 function renderServers(filter=""){
     serverList.innerHTML="";
     servers.filter(s=>s.name.toLowerCase().includes(filter.toLowerCase())).forEach((s,i)=>{
-        const div=document.createElement('div'); div.className='server';
+        const div=document.createElement('div'); 
+        div.className='server';
+        const statusColor = s.status==='Online' ? 'blue' : 'red';
         div.innerHTML=`
             <h4>${s.name}</h4>
-            <div>Status: ${s.status}</div>
+            <div style="color:${statusColor}; font-weight:bold;">Status: ${s.status}</div>
             <img src="${s.img}">
             <input value="${s.addr}">
             <input value="${s.port}">
