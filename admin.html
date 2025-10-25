@@ -2,142 +2,134 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Control Panel</title>
+<title>Admin Panel - MineServer Network</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
 body {
-  background: black;
+  font-family: 'Press Start 2P', cursive;
+  background: radial-gradient(circle at center, #000 0%, #020 100%);
   color: #00ff00;
-  font-family: 'Courier New', monospace;
   text-align: center;
-  overflow-x: hidden;
   margin: 0;
-  padding: 0;
+  overflow-x: hidden;
 }
 h1 {
-  color: #00ff00;
-  text-shadow: 0 0 10px #00ff00;
   margin-top: 20px;
+  text-shadow: 0 0 10px #00ff00;
+}
+form, .server {
+  background: rgba(0,0,0,0.85);
+  border: 1px solid #00ff00;
+  border-radius: 10px;
+  padding: 15px;
+  margin: 20px auto;
+  width: 80%;
+  max-width: 600px;
+  box-shadow: 0 0 10px #00ff00;
+}
+input, textarea, select {
+  width: 90%;
+  padding: 10px;
+  margin: 6px 0;
+  border: 1px solid #00ff00;
+  background: black;
+  color: #00ff00;
+  border-radius: 5px;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 10px;
 }
 button {
-  background: transparent;
-  color: #00ff00;
-  border: 1px solid #00ff00;
-  padding: 8px 15px;
-  margin: 5px;
-  cursor: pointer;
-  transition: 0.3s;
-}
-button:hover {
   background: #00ff00;
   color: black;
+  border: none;
+  padding: 10px 20px;
+  margin: 8px;
+  font-weight: bold;
+  border-radius: 5px;
+  cursor: pointer;
+}
+button:hover {
   box-shadow: 0 0 10px #00ff00;
 }
-input, select, textarea {
-  background: black;
-  color: #00ff00;
-  border: 1px solid #00ff00;
-  padding: 8px;
-  width: 80%;
-  margin: 5px 0;
-  text-align: center;
+.status {
+  font-size: 12px;
+  margin-top: 10px;
 }
-textarea {
-  resize: none;
-}
-.server {
-  border: 1px solid #00ff00;
-  padding: 10px;
-  border-radius: 10px;
-  margin: 10px auto;
-  width: 80%;
-  box-shadow: 0 0 10px #00ff00;
-  background: rgba(0, 0, 0, 0.8);
-}
+.status.online { color: #00bfff; } /* blue */
+.status.offline { color: #ff3333; } /* red */
 .server img {
-  width: 100px;
-  height: 100px;
-  border-radius: 10px;
-  border: 1px solid #00ff00;
+  max-width: 120px;
+  border-radius: 8px;
+  margin-bottom: 10px;
 }
-#matrix {
+.bg-animation {
   position: fixed;
-  top: 0; left: 0;
-  z-index: -1;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  background: black;
-  overflow: hidden;
+  background: radial-gradient(circle, rgba(0,255,0,0.2) 0%, transparent 70%);
+  animation: pulse 5s infinite alternate;
+  z-index: -1;
 }
-canvas {
-  display: block;
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 0.3; }
+  100% { transform: scale(1.2); opacity: 0.7; }
 }
 </style>
 </head>
 <body>
-
-<canvas id="matrix"></canvas>
-
+<div class="bg-animation"></div>
 <h1>Admin Control Panel</h1>
 
-<div class="add-server">
-  <h3>Add New Server</h3>
-  <input type="text" id="newName" placeholder="Enter server name"><br>
-  <input type="text" id="newAddr" placeholder="Enter server address"><br>
-  <input type="text" id="newPort" placeholder="Optional port"><br>
-  <select id="newVerType">
+<form id="addForm">
+  <input type="password" id="adminPass" placeholder="Enter Password" required>
+  <input type="text" id="name" placeholder="Server Name" required>
+  <input type="file" id="img" accept="image/*">
+  <input type="text" id="addr" placeholder="Server Address" required>
+  <input type="text" id="port" placeholder="Port (Optional)">
+  <select id="verType">
     <option value="">Select Type</option>
     <option value="Java">Java</option>
     <option value="Bedrock">Bedrock</option>
-  </select><br>
-  <select id="newStatus">
+  </select>
+  <select id="status">
     <option value="Online">Online</option>
     <option value="Offline">Offline</option>
-  </select><br>
-  <input type="text" id="newVersion" placeholder="Server version"><br>
-  <textarea id="newDesc" placeholder="Server description"></textarea><br>
-  <label>Server Image:</label><br>
-  <input type="file" id="newImg" accept="image/*"><br>
-  <button onclick="addServer()">Add Server</button>
-</div>
+  </select>
+  <input type="text" id="version" placeholder="Server Version">
+  <textarea id="desc" placeholder="Description"></textarea>
+  <button type="submit">Add Server</button>
+</form>
 
-<hr style="width: 60%; border-color: #00ff00; margin: 30px auto;">
-
-<div id="serverList"></div>
+<h2>Manage Servers</h2>
+<div id="serverList">Loading servers...</div>
 
 <script>
 const API_URL = "https://api.npoint.io/92f9eb9cee57ecd2ba23";
+const PASSWORD = "0021";
 let servers = [];
 
-async function loadServers() {
+async function fetchServers() {
   const res = await fetch(API_URL);
   servers = await res.json();
   renderServers();
 }
 
-async function saveServers() {
-  await fetch(API_URL, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(servers)
-  });
-}
-
 function renderServers() {
-  const list = document.getElementById("serverList");
+  const list = document.getElementById('serverList');
   list.innerHTML = '';
   servers.forEach((s, i) => {
-    const statusColor = s.status === 'Online' ? '#00bfff' : '#ff3333';
     const div = document.createElement('div');
     div.className = 'server';
     div.innerHTML = `
-      <h4>${s.name}</h4>
-      <div style="color:${statusColor}; font-weight:bold;">${s.status}</div>
-      <img src="${s.img || ''}" alt="Server Image">
-      <p><b>Address:</b> ${s.addr}${s.port ? ':' + s.port : ''}</p>
-      <p><b>Version:</b> ${s.version || ''}</p>
+      <img src="${s.img || ''}" alt="${s.name}">
+      <h3>${s.name}</h3>
+      <p><b>IP:</b> ${s.addr}${s.port ? ':' + s.port : ''}</p>
       <p><b>Type:</b> ${s.verType}</p>
+      <p><b>Version:</b> ${s.version}</p>
       <p><b>Description:</b> ${s.desc}</p>
+      <p class="status ${s.status.toLowerCase()}">${s.status}</p>
       <button onclick="toggleStatus(${i})">Toggle Status</button>
       <button onclick="editServer(${i})">Edit</button>
       <button onclick="removeServer(${i})">Remove</button>
@@ -146,84 +138,70 @@ function renderServers() {
   });
 }
 
-function addServer() {
-  const name = document.getElementById('newName').value;
-  const addr = document.getElementById('newAddr').value;
-  const port = document.getElementById('newPort').value;
-  const verType = document.getElementById('newVerType').value;
-  const status = document.getElementById('newStatus').value;
-  const version = document.getElementById('newVersion').value;
-  const desc = document.getElementById('newDesc').value;
-  const imgInput = document.getElementById('newImg');
-
-  if (!name || !addr || !verType) {
-    alert("Please fill required fields.");
-    return;
-  }
-
-  if (imgInput.files && imgInput.files[0]) {
+document.getElementById('addForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const pass = document.getElementById('adminPass').value;
+  if (pass !== PASSWORD) return alert('Wrong password!');
+  
+  const file = document.getElementById('img').files[0];
+  let imgData = '';
+  if (file) {
     const reader = new FileReader();
-    reader.onload = async function(e) {
-      const img = e.target.result;
-      servers.push({ name, addr, port, verType, status, version, desc, img });
-      await saveServers();
-      renderServers();
+    reader.onload = async () => {
+      imgData = reader.result;
+      const newServer = {
+        name: document.getElementById('name').value,
+        img: imgData,
+        addr: document.getElementById('addr').value,
+        port: document.getElementById('port').value,
+        verType: document.getElementById('verType').value,
+        status: document.getElementById('status').value,
+        version: document.getElementById('version').value,
+        desc: document.getElementById('desc').value
+      };
+      servers.push(newServer);
+      await updateServers();
       alert("Server added!");
+      e.target.reset();
+      fetchServers();
     };
-    reader.readAsDataURL(imgInput.files[0]);
+    reader.readAsDataURL(file);
   } else {
-    servers.push({ name, addr, port, verType, status, version, desc, img: '' });
-    saveServers();
-    renderServers();
+    alert("Please choose an image!");
   }
+});
+
+async function toggleStatus(i) {
+  servers[i].status = (servers[i].status === "Online") ? "Offline" : "Online";
+  await updateServers();
+  fetchServers();
 }
 
-function toggleStatus(i) {
-  servers[i].status = servers[i].status === 'Online' ? 'Offline' : 'Online';
-  saveServers();
-  renderServers();
+async function editServer(i) {
+  const newName = prompt("Edit name:", servers[i].name);
+  if (newName !== null) servers[i].name = newName;
+  const newDesc = prompt("Edit description:", servers[i].desc);
+  if (newDesc !== null) servers[i].desc = newDesc;
+  await updateServers();
+  fetchServers();
 }
 
-function removeServer(i) {
-  if (confirm(`Remove ${servers[i].name}?`)) {
-    servers.splice(i, 1);
-    saveServers();
-    renderServers();
-  }
+async function removeServer(i) {
+  if (!confirm("Remove this server?")) return;
+  servers.splice(i, 1);
+  await updateServers();
+  fetchServers();
 }
 
-function editServer(i) {
-  const s = servers[i];
-  const name = prompt("Edit name:", s.name);
-  if (name === null) return;
-  s.name = name;
-  const desc = prompt("Edit description:", s.desc);
-  if (desc !== null) s.desc = desc;
-  saveServers();
-  renderServers();
-}
-
-loadServers();
-
-// Matrix background animation
-const canvas = document.getElementById('matrix');
-const ctx = canvas.getContext('2d');
-canvas.height = window.innerHeight;
-canvas.width = window.innerWidth;
-const letters = Array(256).join("1").split("");
-function drawMatrix() {
-  ctx.fillStyle = "rgba(0,0,0,0.05)";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "#00ff00";
-  letters.map((y, index) => {
-    const text = String.fromCharCode(3e4 + Math.random() * 33);
-    const x = index * 10;
-    ctx.fillText(text, x, y);
-    letters[index] = y > 758 + Math.random() * 1e4 ? 0 : y + 10;
+async function updateServers() {
+  await fetch(API_URL, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(servers)
   });
 }
-setInterval(drawMatrix, 33);
-</script>
 
+fetchServers();
+</script>
 </body>
 </html>
