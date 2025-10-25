@@ -5,58 +5,21 @@
 <title>Admin Panel - OMAN SERVERS</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
-body {
-    font-family: 'Press Start 2P', cursive;
-    margin: 0;
-    background: black;
-    color: #00ff00;
-    text-align: center;
-    overflow-x: hidden;
-}
-canvas#bgCanvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
-}
-header { background-color: #111; border-bottom: 2px solid #00ff00; padding: 20px 0; }
-header h1 { font-size: 22px; margin: 0; }
-main { padding: 20px; max-width: 900px; margin: auto; }
-input, select, textarea, button {
-    font-family: 'Press Start 2P', cursive;
-    margin: 5px 0;
-    padding: 8px;
-    border-radius: 5px;
-    border: 1px solid #00ff00;
-    background: black;
-    color: #00ff00;
-    display: block;
-    width: 60%;
-    margin-left: auto;
-    margin-right: auto;
-}
-button { cursor: pointer; background: #00ff00; color: black; font-weight: bold; }
-button:hover { opacity: 0.8; }
-.server-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-top: 20px; }
-.server {
-    background: rgba(0,0,0,0.85);
-    border: 2px solid #00ff00;
-    padding: 10px;
-    border-radius: 8px;
-    width: 250px;
-    text-align: center;
-}
-.server img { width: 100px; height: 100px; object-fit: cover; margin-bottom: 5px; }
-.stats, .activity-log, .admin-message, .quick-links { 
-    border: 2px solid #00ff00; 
-    border-radius: 8px; 
-    padding: 10px; 
-    margin: 20px auto; 
-    max-width: 600px;
-}
-textarea { height: 60px; }
+body {font-family:'Press Start 2P',cursive;margin:0;background:black;color:#00ff00;text-align:center;overflow-x:hidden;}
+canvas#bgCanvas {position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;}
+header {background:#111;border-bottom:2px solid #00ff00;padding:20px 0;}
+header h1 {font-size:22px;margin:0;}
+main {padding:20px; max-width:900px;margin:auto;}
+input, select, textarea, button {font-family:'Press Start 2P',cursive;margin:5px 0;padding:8px;border-radius:5px;border:1px solid #00ff00;background:black;color:#00ff00;display:block;width:60%;margin-left:auto;margin-right:auto;}
+button {cursor:pointer;background:#00ff00;color:black;font-weight:bold;}
+button:hover {opacity:0.8;}
+.server-list {display:flex;flex-wrap:wrap;justify-content:center;gap:15px;margin-top:20px;}
+.server {background:rgba(0,0,0,0.85);border:2px solid #00ff00;padding:10px;border-radius:8px;width:250px;text-align:center;}
+.server img {width:100px;height:100px;object-fit:cover;margin-bottom:5px;}
+.status-online {color:blue;font-weight:bold;}
+.status-offline {color:red;font-weight:bold;}
+.stats,.activity-log,.admin-message,.quick-links{border:2px solid #00ff00;border-radius:8px;padding:10px;margin:20px auto;max-width:600px;}
+textarea {height:80px;}
 </style>
 </head>
 <body>
@@ -118,68 +81,58 @@ textarea { height: 60px; }
 
 <div class="admin-message">
 <h3>Admin Notes</h3>
-<textarea id="adminNotes" placeholder="Write notes..." style="height:80px;"></textarea>
+<textarea id="adminNotes" placeholder="Write notes..."></textarea>
 <button onclick="saveNotes()">Save Notes</button>
 </div>
 
 <div class="activity-log" id="activityLog"><h3>Activity Log</h3></div>
 
-<!-- Firebase SDK -->
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
-const password="0021";
-if(prompt("Enter admin password:")!==password){
-    document.body.innerHTML="<h2 style='color:red;margin-top:50px;'>Access Denied</h2>";
-}
-
 const firebaseConfig = {
   apiKey: "AIzaSyD_LtDCU_fI1LazKYuuFBHf4tC_pzHAiCw",
   authDomain: "omanwebsite-ae60c.firebaseapp.com",
   projectId: "omanwebsite-ae60c",
   storageBucket: "omanwebsite-ae60c.firebasestorage.app",
   messagingSenderId: "554330436845",
-  appId: "1:554330436845:web:5e9e90857410848ee488e4",
-  measurementId: "G-6HBLKC0N5L"
+  appId: "1:554330436845:web:5e9e90857410848ee488e4"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-let servers = [];
-const serverList=document.getElementById('server-list');
-const searchInput=document.getElementById('searchInput');
+// Password protection
+const password="0021";
+if(prompt("Enter admin password:")!==password){document.body.innerHTML="<h2 style='color:red;margin-top:50px;'>Access Denied</h2>";}
 
-function renderServers(filter=""){
+// Fetch and render servers
+const serverList = document.getElementById('server-list');
+const searchInput = document.getElementById('searchInput');
+
+function renderServers(snapshot, filter=""){
     serverList.innerHTML="";
-    servers.filter(s=>s.name.toLowerCase().includes(filter.toLowerCase())).forEach((s,i)=>{
-        const div=document.createElement('div'); 
+    snapshot.forEach(doc=>{
+        const s = doc.data();
+        if(!s.name.toLowerCase().includes(filter.toLowerCase())) return;
+        const div = document.createElement('div');
         div.className='server';
-        const statusColor = s.status==='Online' ? 'blue' : 'red';
+        const statusClass = s.status==='Online'?'status-online':'status-offline';
         div.innerHTML=`
             <h4>${s.name}</h4>
-            <div style="color:${statusColor}; font-weight:bold;">Status: ${s.status}</div>
+            <div class="${statusClass}">Status: ${s.status}</div>
             <img src="${s.img}">
-            <input value="${s.addr}" placeholder="Address">
-            <input value="${s.port}" placeholder="Port">
-            <select>
-                <option ${s.verType==='Java'?'selected':''}>Java</option>
-                <option ${s.verType==='Bedrock'?'selected':''}>Bedrock</option>
-            </select>
-            <input value="${s.version}" placeholder="Version">
-            <textarea>${s.desc}</textarea>
-            <button onclick="copyAddr(${i})">Copy Address</button>
-            <button onclick="toggleStatus(${i})">Toggle Status</button>
+            <p>Address: ${s.addr}${s.port?':'+s.port:''}</p>
+            <p>Type: ${s.verType} Version: ${s.version}</p>
+            <p>${s.desc}</p>
+            <button onclick="copyAddr('${doc.id}')">Copy Address</button>
+            <button onclick="toggleStatus('${doc.id}')">Toggle Status</button>
         `;
         serverList.appendChild(div);
     });
 }
 
-// Fetch servers from Firebase
-db.collection("servers").orderBy("name").onSnapshot(snapshot=>{
-    servers = snapshot.docs.map(doc=>doc.data());
-    renderServers(searchInput.value);
-});
-
+// Add server
 function addServer(){
     const name=document.getElementById('newName').value;
     const addr=document.getElementById('newAddr').value;
@@ -189,61 +142,49 @@ function addServer(){
     const version=document.getElementById('newVersion').value;
     const desc=document.getElementById('newDesc').value;
     const fileInput=document.getElementById('newImgFile');
-    if(!name||!addr||!verType||!status||!version||!desc||fileInput.files.length===0){
-        alert('Please fill all fields and choose an image');
-        return;
-    }
+    if(!name||!addr||!verType||!status||!version||!desc||fileInput.files.length===0){alert('Please fill all fields and choose an image');return;}
     const reader=new FileReader();
     reader.onload=function(e){
-        db.collection("servers").add({name,addr,port,verType,status,version,desc,img:e.target.result})
-        .then(()=>{alert('Server added!'); renderServers(searchInput.value);
-            document.getElementById('newName').value='';
-            document.getElementById('newAddr').value='';
-            document.getElementById('newPort').value='';
-            document.getElementById('newVerType').value='';
-            document.getElementById('newStatus').value='Online';
-            document.getElementById('newVersion').value='';
-            document.getElementById('newDesc').value='';
-            document.getElementById('newImgFile').value='';
-        });
+        db.collection('servers').add({name, addr, port, verType, status, version, desc, img:e.target.result})
+        .then(()=>{alert('Server added!');document.getElementById('newName').value='';document.getElementById('newAddr').value='';document.getElementById('newPort').value='';document.getElementById('newVerType').value='';document.getElementById('newStatus').value='Online';document.getElementById('newVersion').value='';document.getElementById('newDesc').value='';document.getElementById('newImgFile').value='';});
     };
     reader.readAsDataURL(fileInput.files[0]);
 }
 
-function copyAddr(i){navigator.clipboard.writeText(servers[i].addr+(servers[i].port?':'+servers[i].port:''));alert('Address copied');}
-function toggleStatus(i){
-    const doc = db.collection("servers").doc(Object.keys(servers)[i]);
-    const newStatus = servers[i].status==='Online'?'Offline':'Online';
-    db.collection("servers").doc(snapshot.docs[i].id).update({status:newStatus});
+function copyAddr(id){
+    db.collection('servers').doc(id).get().then(doc=>{navigator.clipboard.writeText(doc.data().addr+(doc.data().port?':'+doc.data().port:'')); alert('Address copied');});
 }
-function openPage(url){window.location.href=url;}
-function saveNotes(){db.collection("admin").doc('notes').set({text:document.getElementById('adminNotes').value});alert('Notes saved!');}
 
-searchInput.addEventListener('input',()=>renderServers(searchInput.value));
-renderServers();
+function toggleStatus(id){
+    const ref=db.collection('servers').doc(id);
+    ref.get().then(doc=>{
+        const newStatus=doc.data().status==='Online'?'Offline':'Online';
+        ref.update({status:newStatus});
+    });
+}
+
+function openPage(url){window.location.href=url;}
+function saveNotes(){db.collection('admin').doc('notes').set({text:document.getElementById('adminNotes').value});alert('Notes saved!');}
+
+// Load notes
+db.collection('admin').doc('notes').get().then(doc=>{if(doc.exists){document.getElementById('adminNotes').value=doc.data().text;}});
+
+searchInput.addEventListener('input',()=>{
+    db.collection('servers').get().then(snapshot=>renderServers(snapshot,searchInput.value));
+});
+
+db.collection('servers').onSnapshot(snapshot=>renderServers(snapshot,searchInput.value));
 
 // Matrix background animation
 const canvas = document.getElementById('bgCanvas');
 const ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth; canvas.height = window.innerHeight;
 const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()";
-const fontSize = 14;
-const columns = Math.floor(canvas.width / fontSize);
-const drops = Array(columns).fill(1);
-function drawMatrix(){
-    ctx.fillStyle = "rgba(0,0,0,0.05)";
-    ctx.fillRect(0,0,canvas.width,canvas.height);
-    ctx.fillStyle = "#00ff00";
-    ctx.font = fontSize+"px monospace";
-    for(let i=0;i<drops.length;i++){
-        const text = letters.charAt(Math.floor(Math.random()*letters.length));
-        ctx.fillText(text,i*fontSize,drops[i]*fontSize);
-        drops[i]++;
-        if(drops[i]*fontSize>canvas.height && Math.random()>0.975)drops[i]=0;
-    }
-}
+const fontSize = 14; const columns = Math.floor(canvas.width/fontSize); const drops = Array(columns).fill(1);
+function drawMatrix(){ctx.fillStyle="rgba(0,0,0,0.05)";ctx.fillRect(0,0,canvas.width,canvas.height);ctx.fillStyle="#00ff00";ctx.font=fontSize+"px monospace";for(let i=0;i<drops.length;i++){const text=letters.charAt(Math.floor(Math.random()*letters.length));ctx.fillText(text,i*fontSize,drops[i]*fontSize);drops[i]++;if(drops[i]*fontSize>canvas.height&&Math.random()>0.975)drops[i]=0;}}
 setInterval(drawMatrix,50);
-window.addEventListener('resize',()=>{canvas.width=window.innerWidth; canvas.height=window.innerHeight;});
+window.addEventListener('resize',()=>{canvas.width=window.innerWidth;canvas.height=window.innerHeight;});
 </script>
+
 </body>
 </html>
