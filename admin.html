@@ -46,7 +46,7 @@ button:hover { opacity: 0.8; }
     color: #00ff00;
 }
 .server img { width: 100px; height: 100px; object-fit: cover; margin-bottom: 5px; }
-.stats, .activity-log, .admin-message, .quick-links { 
+.stats, .activity-log, .admin-message, .quick-links, .comments-section { 
     border: 2px solid #00ff00; 
     border-radius: 8px; 
     padding: 10px; 
@@ -54,6 +54,12 @@ button:hover { opacity: 0.8; }
     max-width: 600px;
 }
 textarea { height: 60px; }
+.comment {
+    border-bottom: 1px solid #00ff00;
+    padding: 5px 0;
+    text-align: left;
+}
+.comment span { font-weight: bold; }
 </style>
 </head>
 <body>
@@ -119,6 +125,11 @@ textarea { height: 60px; }
 </div>
 
 <div class="activity-log" id="activityLog"><h3>Activity Log</h3></div>
+
+<div class="comments-section">
+<h3>User Comments / Suggestions</h3>
+<div id="commentList"></div>
+</div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -218,6 +229,36 @@ document.getElementById('adminNotes').value=localStorage.getItem('adminNotes')||
 
 searchInput.addEventListener('input',()=>renderServers(searchInput.value));
 fetchServers();
+
+// Comments handling
+const commentList=document.getElementById('commentList');
+function fetchComments(){
+    commentList.innerHTML="";
+    db.collection('comments').orderBy('timestamp','desc').get().then(snapshot=>{
+        snapshot.forEach(doc=>{
+            const data=doc.data();
+            const div=document.createElement('div');
+            div.className='comment';
+            div.innerHTML=`<span>${data.user}:</span> ${data.text} <button onclick="deleteComment('${doc.id}')">Delete</button>`;
+            commentList.appendChild(div);
+        });
+    });
+}
+function deleteComment(id){
+    db.collection('comments').doc(id).delete().then(fetchComments);
+}
+fetchComments();
+
+// Optional: delete last comment with Alt + D (hidden, no text)
+document.addEventListener('keydown', function(e){
+    if(e.altKey && e.key.toLowerCase() === 'd'){
+        db.collection('comments').orderBy('timestamp','desc').limit(1).get().then(snapshot=>{
+            snapshot.forEach(doc=>{
+                doc.ref.delete().then(fetchComments);
+            });
+        });
+    }
+});
 </script>
 
 </body>
