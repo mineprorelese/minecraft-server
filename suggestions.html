@@ -1,1 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>OMAN SERVERS - Suggestions</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+body {
+    font-family: 'Press Start 2P', cursive;
+    margin:0;
+    background:black;
+    color:#00ff00;
+    text-align:center;
+}
+main {
+    margin-top:50px;
+    max-width:900px;
+    margin-left:auto;
+    margin-right:auto;
+}
+.comment-form, .comments-list {
+    background: rgba(0,0,0,0.85);
+    border: 2px solid #00ff00;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 20px auto;
+    max-width: 600px;
+}
+input, textarea, button {
+    font-family: 'Press Start 2P', cursive;
+    margin:5px 0;
+    padding:8px;
+    border-radius:5px;
+    border:1px solid #00ff00;
+    background:black;
+    color:#00ff00;
+    display:block;
+    width:90%;
+    margin-left:auto;
+    margin-right:auto;
+}
+button {
+    cursor:pointer;
+    background:#00ff00;
+    color:black;
+    font-weight:bold;
+}
+button:hover {
+    opacity:0.8;
+}
+.comment {
+    border-bottom:1px solid #00ff00;
+    padding:10px 0;
+    text-align:left;
+}
+.comment:last-child { border-bottom:none; }
+.comment-user { font-weight:bold; color: #00ffff; }
+.comment-text { margin:5px 0; }
+</style>
+</head>
+<body>
+
+<header>
+<h1>OMAN SERVERS - Suggestions</h1>
+<p>Submit your comments about what to update!</p>
+</header>
+
+<main>
+<div class="comment-form">
+<h3>Add Comment</h3>
+<input type="text" id="username" placeholder="Your name" required>
+<textarea id="commentText" placeholder="Your comment..." rows="4" required></textarea>
+<button onclick="addComment()">Submit</button>
+</div>
+
+<div class="comments-list" id="commentsList">
+<h3>Comments</h3>
+<div id="allComments"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyD_LtDCU_fI1LazKYuuFBHf4tC_pzHAiCw",
+  authDomain: "omanwebsite-ae60c.firebaseapp.com",
+  projectId: "omanwebsite-ae60c",
+  storageBucket: "omanwebsite-ae60c.firebasestorage.app",
+  messagingSenderId: "554330436845",
+  appId: "1:554330436845:web:5e9e90857410848ee488e4"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const allComments = document.getElementById('allComments');
+
+function renderComments(){
+    allComments.innerHTML = '';
+    db.collection('comments').orderBy('time','desc').get().then(snapshot=>{
+        snapshot.forEach(doc=>{
+            const c = doc.data();
+            const div = document.createElement('div');
+            div.className='comment';
+            div.innerHTML=`<div class="comment-user">${c.username}</div><div class="comment-text">${c.text}</div>`;
+            allComments.appendChild(div);
+        });
+    });
+}
+
+function addComment(){
+    const username = document.getElementById('username').value.trim();
+    const text = document.getElementById('commentText').value.trim();
+    if(!username || !text){ alert('Fill both fields'); return; }
+    db.collection('comments').add({
+        username,
+        text,
+        time: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(()=>{
+        document.getElementById('username').value='';
+        document.getElementById('commentText').value='';
+        renderComments();
+    });
+}
+
+renderComments();
+</script>
+
+</body>
+</html>
 
