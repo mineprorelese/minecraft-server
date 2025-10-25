@@ -2,77 +2,74 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Edit Server - MineServer Network</title>
+<title>Edit Server (Hidden)</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
-body { font-family:'Press Start 2P',cursive; background:black; color:#00ff00; text-align:center; }
-select,input,textarea,button { background:black; color:#00ff00; border:1px solid #00ff00;
-border-radius:5px; margin:6px auto; padding:8px; display:block; width:60%; }
-button { background:#00ff00; color:black; cursor:pointer; font-weight:bold; }
-button:hover { opacity:0.8; }
+body { font-family: 'Press Start 2P', cursive; margin:0; background:black; color:#00ffff; text-align:center; }
+main { margin-top:50px; }
+input, textarea, select, button { display:block; margin:10px auto; padding:10px; width:60%; border-radius:5px; background:black; color:#00ffff; border:1px solid #00ffff; }
+button:hover{ opacity:0.8; cursor:pointer; }
+.server-item { border:1px solid #00ffff; padding:10px; margin:5px; }
 </style>
 </head>
 <body>
-
+<main>
 <h2>Edit Server</h2>
-<div id="content" style="display:none;">
-<select id="serverSelect"></select>
+<input type="password" id="pass" placeholder="Enter admin password" required>
+<div id="serverList"></div>
+</main>
 
-<label>Server Name</label><input id="name">
-<label>Address</label><input id="addr">
-<label>Port</label><input id="port">
-<label>Type</label><select id="verType"><option>Java</option><option>Bedrock</option></select>
-<label>Status</label><select id="status"><option>Online</option><option>Offline</option></select>
-<label>Version</label><input id="version">
-<label>Description</label><textarea id="desc"></textarea>
-<label>New Picture</label><input type="file" id="img" accept="image/*">
-<button onclick="updateServer()">Save Changes</button>
-</div>
-
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
-const API_URL="https://api.npoint.io/92f9eb9cee57ecd2ba23";
+const firebaseConfig = {
+  apiKey: "AIzaSyD_LtDCU_fI1LazKYuuFBHf4tC_pzHAiCw",
+  authDomain: "omanwebsite-ae60c.firebaseapp.com",
+  projectId: "omanwebsite-ae60c",
+  storageBucket: "omanwebsite-ae60c.firebasestorage.app",
+  messagingSenderId: "554330436845",
+  appId: "1:554330436845:web:5e9e90857410848ee488e4"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 const password="0021";
-if(prompt("Enter admin password:")!==password){
- document.body.innerHTML="<h2 style='color:red;margin-top:50px;'>Access Denied</h2>";
-}else document.getElementById("content").style.display="block";
 
-let servers=[];
-async function loadServers(){
- const r=await fetch(API_URL); servers=await r.json();
- const sel=document.getElementById("serverSelect");
- sel.innerHTML=servers.map((s,i)=>`<option value="${i}">${s.name}</option>`).join("");
- fillForm(0);
- sel.onchange=()=>fillForm(sel.value);
+function renderServers(){
+    db.collection('servers').get().then(snapshot=>{
+        const container=document.getElementById('serverList');
+        container.innerHTML="";
+        snapshot.forEach(doc=>{
+            const data=doc.data();
+            const div=document.createElement('div');
+            div.className='server-item';
+            div.innerHTML=`
+                <strong>${data.name}</strong><br>
+                <input value="${data.addr}" id="addr_${doc.id}">
+                <input value="${data.port}" id="port_${doc.id}">
+                <select id="verType_${doc.id}">
+                    <option ${data.verType==='Java'?'selected':''}>Java</option>
+                    <option ${data.verType==='Bedrock'?'selected':''}>Bedrock</option>
+                </select>
+                <input value="${data.version}" id="version_${doc.id}">
+                <textarea id="desc_${doc.id}">${data.desc}</textarea>
+                <button onclick="saveServer('${doc.id}')">Save</button>
+            `;
+            container.appendChild(div);
+        });
+    });
 }
-function fillForm(i){
- const s=servers[i];
- nameInput.value=s.name; addrInput.value=s.addr; portInput.value=s.port;
- verTypeInput.value=s.verType; statusInput.value=s.status;
- versionInput.value=s.version; descInput.value=s.desc;
+
+function saveServer(id){
+    if(document.getElementById('pass').value!==password){alert('Wrong password'); return;}
+    const addr=document.getElementById('addr_'+id).value;
+    const port=document.getElementById('port_'+id).value;
+    const verType=document.getElementById('verType_'+id).value;
+    const version=document.getElementById('version_'+id).value;
+    const desc=document.getElementById('desc_'+id).value;
+    db.collection('servers').doc(id).update({addr,port,verType,version,desc}).then(()=>alert('Server updated!'));
 }
-async function saveServers(){
- await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(servers)});
-}
-async function updateServer(){
- const i=serverSelect.value, file=imgInput.files[0];
- const s=servers[i];
- s.name=nameInput.value; s.addr=addrInput.value; s.port=portInput.value;
- s.verType=verTypeInput.value; s.status=statusInput.value;
- s.version=versionInput.value; s.desc=descInput.value;
- if(file){const r=new FileReader();r.onload=async e=>{s.img=e.target.result;await saveServers();alert("Updated!");};r.readAsDataURL(file);}
- else {await saveServers();alert("Updated!");}
-}
-const serverSelect=document.getElementById("serverSelect");
-const nameInput=document.getElementById("name");
-const addrInput=document.getElementById("addr");
-const portInput=document.getElementById("port");
-const verTypeInput=document.getElementById("verType");
-const statusInput=document.getElementById("status");
-const versionInput=document.getElementById("version");
-const descInput=document.getElementById("desc");
-const imgInput=document.getElementById("img");
-loadServers();
+
+renderServers();
 </script>
-
 </body>
 </html>
