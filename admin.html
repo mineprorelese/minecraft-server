@@ -136,6 +136,7 @@ textarea { height: 60px; }
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
 <script>
 // Firebase config
 const firebaseConfig = {
@@ -144,22 +145,24 @@ const firebaseConfig = {
   projectId: "omanwebsite-ae60c",
   storageBucket: "omanwebsite-ae60c.appspot.com",
   messagingSenderId: "554330436845",
-  appId: "1:554330436845:web:5e9e90857410848ee488e4"
+  appId: "1:554330436845:web:5e9e90857410848ee488e4",
+  measurementId: "G-6HBLKC0N5L"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// Password protection
 const password="0021";
-if(prompt("Enter admin password:")!==password){
-    document.body.innerHTML="<h2 style='color:red;margin-top:50px;'>Access Denied</h2>";
-}
+if(prompt("Enter admin password:")!==password){document.body.innerHTML="<h2 style='color:red;margin-top:50px;'>Access Denied</h2>";}
 
-let servers=JSON.parse(localStorage.getItem('servers')||'[]');
+let servers=[];
+db.collection('servers').get().then(snapshot=>{
+    servers=snapshot.docs.map(d=>({id:d.id,...d.data()}));
+    renderServers();
+});
+
 const serverList=document.getElementById('server-list');
 const searchInput=document.getElementById('searchInput');
 
-// Render servers
 function renderServers(filter=""){
     serverList.innerHTML="";
     servers.filter(s=>s.name.toLowerCase().includes(filter.toLowerCase())).forEach((s,i)=>{
@@ -185,7 +188,6 @@ function renderServers(filter=""){
     });
 }
 
-// Add server
 function addServer(){
     const name=document.getElementById('newName').value;
     const addr=document.getElementById('newAddr').value;
@@ -198,30 +200,30 @@ function addServer(){
     if(!name||!addr||!verType||!status||!version||!desc||fileInput.files.length===0){alert('Please fill all fields and choose an image');return;}
     const reader=new FileReader();
     reader.onload=function(e){
-        servers.push({name, addr, port, verType, status, version, desc, img:e.target.result});
-        localStorage.setItem('servers',JSON.stringify(servers));
-        renderServers(searchInput.value);
-        alert('Server added!');
-        document.getElementById('newName').value='';
-        document.getElementById('newAddr').value='';
-        document.getElementById('newPort').value='';
-        document.getElementById('newVerType').value='';
-        document.getElementById('newStatus').value='Online';
-        document.getElementById('newVersion').value='';
-        document.getElementById('newDesc').value='';
-        document.getElementById('newImgFile').value='';
+        db.collection('servers').add({name, addr, port, verType, status, version, desc, img:e.target.result}).then(docRef=>{
+            servers.push({id:docRef.id,name,addr,port,verType,status,version,desc,img:e.target.result});
+            renderServers(searchInput.value);
+            alert('Server added!');
+            document.getElementById('newName').value='';
+            document.getElementById('newAddr').value='';
+            document.getElementById('newPort').value='';
+            document.getElementById('newVerType').value='';
+            document.getElementById('newStatus').value='Online';
+            document.getElementById('newVersion').value='';
+            document.getElementById('newDesc').value='';
+            document.getElementById('newImgFile').value='';
+        });
     };
     reader.readAsDataURL(fileInput.files[0]);
 }
 
 function copyAddr(i){navigator.clipboard.writeText(servers[i].addr+(servers[i].port?':'+servers[i].port:''));alert('Address copied');}
-function toggleStatus(i){servers[i].status=servers[i].status==='Online'?'Offline':'Online';localStorage.setItem('servers',JSON.stringify(servers));renderServers(searchInput.value);}
+function toggleStatus(i){servers[i].status=servers[i].status==='Online'?'Offline':'Online';db.collection('servers').doc(servers[i].id).update({status:servers[i].status});renderServers(searchInput.value);}
 function openPage(url){window.location.href=url;}
 function saveNotes(){localStorage.setItem('adminNotes',document.getElementById('adminNotes').value);alert('Notes saved!');}
 document.getElementById('adminNotes').value=localStorage.getItem('adminNotes')||'';
 
 searchInput.addEventListener('input',()=>renderServers(searchInput.value));
-renderServers();
 
 // Matrix background animation
 const canvas = document.getElementById('bgCanvas');
@@ -260,8 +262,10 @@ function fetchSuggestions(){
             div.style.padding = "5px";
             div.style.margin = "5px 0";
             div.style.background = "rgba(0,0,0,0.7)";
+            div.style.textAlign = "center";
             div.innerHTML = `
                 <b>${s.username || 'Anonymous'}:</b> ${s.comment}
+                <br>
                 <button onclick="removeSuggestion('${doc.id}')">Remove</button>
             `;
             container.appendChild(div);
