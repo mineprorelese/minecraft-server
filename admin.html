@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Admin Panel - MineServer Network</title>
+<title>Admin Panel - OMAN SERVERS</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
 body {
@@ -64,7 +64,7 @@ textarea { height: 60px; }
 </head>
 <body>
 
-<header><h1>Admin Panel</h1></header>
+<header><h1>Admin Panel - OMAN SERVERS</h1></header>
 
 <main>
 <input type="text" id="searchInput" placeholder="Search servers by name...">
@@ -200,12 +200,11 @@ function addServer(){
     const desc=document.getElementById('newDesc').value;
     const fileInput=document.getElementById('newImgFile');
     if(!name||!addr||!verType||!status||!version||!desc||fileInput.files.length===0){alert('Please fill all fields and choose an image');return;}
-    
     const reader=new FileReader();
     reader.onload=function(e){
-        const imgData = e.target.result;
-        db.collection('servers').add({name, addr, port, verType, status, version, desc, img: imgData})
-        .then(()=>{fetchServers(); alert('Server added!');
+        db.collection('servers').add({name,addr,port,verType,status,version,desc,img:e.target.result}).then(()=>{
+            fetchServers();
+            alert('Server added!');
             document.getElementById('newName').value='';
             document.getElementById('newAddr').value='';
             document.getElementById('newPort').value='';
@@ -232,8 +231,9 @@ document.getElementById('adminNotes').value=localStorage.getItem('adminNotes')||
 searchInput.addEventListener('input',()=>renderServers(searchInput.value));
 fetchServers();
 
-// Comments
+// Comments functions
 const commentList=document.getElementById('commentList');
+
 function fetchComments(){
     commentList.innerHTML='';
     db.collection('comments').orderBy('timestamp','desc').get().then(snapshot=>{
@@ -246,8 +246,16 @@ function fetchComments(){
         });
     });
 }
+
 function deleteComment(id){db.collection('comments').doc(id).delete().then(fetchComments);}
-function clearComments(){if(confirm('Clear all comments?')){db.collection('comments').get().then(snapshot=>{snapshot.forEach(doc=>{doc.ref.delete();}); setTimeout(fetchComments,500);});}}
+function clearComments(){
+    if(confirm('Clear all comments?')){
+        db.collection('comments').get().then(snapshot=>{
+            snapshot.forEach(doc=>{doc.ref.delete();});
+            setTimeout(fetchComments,500);
+        });
+    }
+}
 function refreshComments(){fetchComments();}
 fetchComments();
 </script>
