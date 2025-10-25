@@ -7,7 +7,7 @@
 <style>
 body {
   font-family: 'Press Start 2P', cursive;
-  background: radial-gradient(circle at center, #000 0%, #020 100%);
+  background: radial-gradient(circle at center, #000 0%, #010 100%);
   color: #00ff00;
   text-align: center;
   margin: 0;
@@ -17,7 +17,10 @@ h1 {
   margin-top: 20px;
   text-shadow: 0 0 10px #00ff00;
 }
-form, .server {
+section {
+  margin-top: 25px;
+}
+form, .server, .stats, .admin-notes {
   background: rgba(0,0,0,0.85);
   border: 1px solid #00ff00;
   border-radius: 10px;
@@ -37,13 +40,14 @@ input, textarea, select {
   border-radius: 5px;
   font-family: 'Press Start 2P', cursive;
   font-size: 10px;
+  text-align: center;
 }
 button {
   background: #00ff00;
   color: black;
   border: none;
   padding: 10px 20px;
-  margin: 8px;
+  margin: 6px;
   font-weight: bold;
   border-radius: 5px;
   cursor: pointer;
@@ -51,30 +55,47 @@ button {
 button:hover {
   box-shadow: 0 0 10px #00ff00;
 }
-.status {
-  font-size: 12px;
-  margin-top: 10px;
+.server {
+  transition: 0.3s;
 }
-.status.online { color: #00bfff; } /* blue */
-.status.offline { color: #ff3333; } /* red */
+.server:hover {
+  box-shadow: 0 0 20px #00ff00;
+}
+.status.online { color: #00bfff; }
+.status.offline { color: #ff3333; }
 .server img {
   max-width: 120px;
   border-radius: 8px;
-  margin-bottom: 10px;
+  margin: 8px 0;
 }
 .bg-animation {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle, rgba(0,255,0,0.2) 0%, transparent 70%);
-  animation: pulse 5s infinite alternate;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: radial-gradient(circle, rgba(0,255,0,0.15) 0%, transparent 70%);
+  animation: pulse 6s infinite alternate;
   z-index: -1;
 }
 @keyframes pulse {
   0% { transform: scale(1); opacity: 0.3; }
-  100% { transform: scale(1.2); opacity: 0.7; }
+  100% { transform: scale(1.3); opacity: 0.6; }
+}
+.toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #00ff00;
+  color: black;
+  padding: 8px 15px;
+  border-radius: 8px;
+  font-size: 10px;
+  opacity: 0.9;
+  animation: fadeOut 3s forwards;
+}
+@keyframes fadeOut {
+  0% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { opacity: 0; }
 }
 </style>
 </head>
@@ -82,6 +103,15 @@ button:hover {
 <div class="bg-animation"></div>
 <h1>Admin Control Panel</h1>
 
+<!-- Stats -->
+<section class="stats" id="stats">
+  <h3>Network Stats</h3>
+  <p>Total Servers: <span id="total">0</span></p>
+  <p>Online: <span id="onlineCount">0</span> | Offline: <span id="offlineCount">0</span></p>
+  <p>Versions: <span id="versionCount">0</span></p>
+</section>
+
+<!-- Add Server -->
 <form id="addForm">
   <input type="password" id="adminPass" placeholder="Enter Password" required>
   <input type="text" id="name" placeholder="Server Name" required>
@@ -102,103 +132,151 @@ button:hover {
   <button type="submit">Add Server</button>
 </form>
 
-<h2>Manage Servers</h2>
-<div id="serverList">Loading servers...</div>
+<!-- Search -->
+<section>
+  <input type="text" id="search" placeholder="Search Servers...">
+</section>
+
+<!-- Admin Notes -->
+<section class="admin-notes">
+  <h3>Admin Notes</h3>
+  <textarea id="notes" rows="4" placeholder="Write admin notes here..."></textarea>
+</section>
+
+<!-- Manage Servers -->
+<section>
+  <h2>Manage Servers</h2>
+  <div id="serverList">Loading servers...</div>
+</section>
 
 <script>
 const API_URL = "https://api.npoint.io/92f9eb9cee57ecd2ba23";
 const PASSWORD = "0021";
 let servers = [];
 
+// Toast notification
+function toast(msg) {
+  const t = document.createElement("div");
+  t.className = "toast";
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+// Fetch servers from API
 async function fetchServers() {
   const res = await fetch(API_URL);
   servers = await res.json();
   renderServers();
+  updateStats();
 }
 
-function renderServers() {
-  const list = document.getElementById('serverList');
-  list.innerHTML = '';
-  servers.forEach((s, i) => {
-    const div = document.createElement('div');
-    div.className = 'server';
-    div.innerHTML = `
-      <img src="${s.img || ''}" alt="${s.name}">
-      <h3>${s.name}</h3>
-      <p><b>IP:</b> ${s.addr}${s.port ? ':' + s.port : ''}</p>
-      <p><b>Type:</b> ${s.verType}</p>
-      <p><b>Version:</b> ${s.version}</p>
-      <p><b>Description:</b> ${s.desc}</p>
-      <p class="status ${s.status.toLowerCase()}">${s.status}</p>
-      <button onclick="toggleStatus(${i})">Toggle Status</button>
-      <button onclick="editServer(${i})">Edit</button>
-      <button onclick="removeServer(${i})">Remove</button>
-    `;
-    list.appendChild(div);
-  });
-}
-
-document.getElementById('addForm').addEventListener('submit', async e => {
-  e.preventDefault();
-  const pass = document.getElementById('adminPass').value;
-  if (pass !== PASSWORD) return alert('Wrong password!');
-  
-  const file = document.getElementById('img').files[0];
-  let imgData = '';
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = async () => {
-      imgData = reader.result;
-      const newServer = {
-        name: document.getElementById('name').value,
-        img: imgData,
-        addr: document.getElementById('addr').value,
-        port: document.getElementById('port').value,
-        verType: document.getElementById('verType').value,
-        status: document.getElementById('status').value,
-        version: document.getElementById('version').value,
-        desc: document.getElementById('desc').value
-      };
-      servers.push(newServer);
-      await updateServers();
-      alert("Server added!");
-      e.target.reset();
-      fetchServers();
-    };
-    reader.readAsDataURL(file);
-  } else {
-    alert("Please choose an image!");
-  }
-});
-
-async function toggleStatus(i) {
-  servers[i].status = (servers[i].status === "Online") ? "Offline" : "Online";
-  await updateServers();
-  fetchServers();
-}
-
-async function editServer(i) {
-  const newName = prompt("Edit name:", servers[i].name);
-  if (newName !== null) servers[i].name = newName;
-  const newDesc = prompt("Edit description:", servers[i].desc);
-  if (newDesc !== null) servers[i].desc = newDesc;
-  await updateServers();
-  fetchServers();
-}
-
-async function removeServer(i) {
-  if (!confirm("Remove this server?")) return;
-  servers.splice(i, 1);
-  await updateServers();
-  fetchServers();
-}
-
+// Update API
 async function updateServers() {
   await fetch(API_URL, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(servers)
   });
+  updateStats();
+}
+
+// Add server
+document.getElementById("addForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  if (document.getElementById("adminPass").value !== PASSWORD) return toast("❌ Wrong password!");
+
+  const file = document.getElementById("img").files[0];
+  if (!file) return toast("⚠️ Please choose an image!");
+  
+  const reader = new FileReader();
+  reader.onload = async () => {
+    const newServer = {
+      name: document.getElementById("name").value,
+      img: reader.result,
+      addr: document.getElementById("addr").value,
+      port: document.getElementById("port").value,
+      verType: document.getElementById("verType").value,
+      status: document.getElementById("status").value,
+      version: document.getElementById("version").value,
+      desc: document.getElementById("desc").value
+    };
+    servers.push(newServer);
+    await updateServers();
+    toast("✅ Server Added!");
+    e.target.reset();
+    fetchServers();
+  };
+  reader.readAsDataURL(file);
+});
+
+// Render servers
+function renderServers() {
+  const list = document.getElementById("serverList");
+  const searchValue = document.getElementById("search").value.toLowerCase();
+  list.innerHTML = "";
+  servers
+    .filter(s => s.name.toLowerCase().includes(searchValue))
+    .forEach((s, i) => {
+      const div = document.createElement("div");
+      div.className = "server";
+      div.innerHTML = `
+        <img src="${s.img}" alt="${s.name}">
+        <h3>${s.name}</h3>
+        <p><b>IP:</b> ${s.addr}${s.port ? ":" + s.port : ""}</p>
+        <p><b>Type:</b> ${s.verType}</p>
+        <p><b>Version:</b> ${s.version}</p>
+        <p><b>Description:</b> ${s.desc}</p>
+        <p class="status ${s.status.toLowerCase()}">${s.status}</p>
+        <button onclick="toggleStatus(${i})">Toggle Status</button>
+        <button onclick="editServer(${i})">Edit</button>
+        <button onclick="removeServer(${i})">Remove</button>
+      `;
+      list.appendChild(div);
+    });
+}
+
+// Edit
+async function editServer(i) {
+  const newName = prompt("Edit server name:", servers[i].name);
+  if (newName !== null) servers[i].name = newName;
+  const newDesc = prompt("Edit description:", servers[i].desc);
+  if (newDesc !== null) servers[i].desc = newDesc;
+  await updateServers();
+  toast("✏️ Server Updated!");
+  fetchServers();
+}
+
+// Remove
+async function removeServer(i) {
+  if (!confirm("Remove this server?")) return;
+  servers.splice(i, 1);
+  await updateServers();
+  toast("🗑️ Server Removed!");
+  fetchServers();
+}
+
+// Toggle status
+async function toggleStatus(i) {
+  servers[i].status = servers[i].status === "Online" ? "Offline" : "Online";
+  await updateServers();
+  toast(`🔄 ${servers[i].name} is now ${servers[i].status}`);
+  fetchServers();
+}
+
+// Search filter
+document.getElementById("search").addEventListener("input", renderServers);
+
+// Stats
+function updateStats() {
+  const total = servers.length;
+  const online = servers.filter(s => s.status === "Online").length;
+  const offline = total - online;
+  const versions = new Set(servers.map(s => s.version)).size;
+  document.getElementById("total").textContent = total;
+  document.getElementById("onlineCount").textContent = online;
+  document.getElementById("offlineCount").textContent = offline;
+  document.getElementById("versionCount").textContent = versions;
 }
 
 fetchServers();
