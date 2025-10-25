@@ -232,8 +232,9 @@ document.getElementById('adminNotes').value=localStorage.getItem('adminNotes')||
 searchInput.addEventListener('input',()=>renderServers(searchInput.value));
 fetchServers();
 
-// Comments
+// Comments functions
 const commentList=document.getElementById('commentList');
+
 function fetchComments(){
     commentList.innerHTML='';
     db.collection('comments').orderBy('timestamp','desc').get().then(snapshot=>{
@@ -246,7 +247,11 @@ function fetchComments(){
         });
     });
 }
-function deleteComment(id){db.collection('comments').doc(id).delete().then(fetchComments);}
+
+function deleteComment(id){
+    db.collection('comments').doc(id).delete().then(fetchComments);
+}
+
 function clearComments(){
     if(confirm('Clear all comments?')){
         db.collection('comments').get().then(snapshot=>{
@@ -255,7 +260,9 @@ function clearComments(){
         });
     }
 }
+
 function refreshComments(){fetchComments();}
+
 fetchComments();
 
 </script>
