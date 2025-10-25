@@ -5,28 +5,73 @@
 <title>Admin Panel - OMAN SERVERS</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
-body {font-family:'Press Start 2P',cursive;margin:0;background:black;color:#00ff00;text-align:center;overflow-x:hidden;}
-canvas#bgCanvas {position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;}
-header {background:#111;border-bottom:2px solid #00ff00;padding:20px 0;}
-header h1 {font-size:22px;margin:0;}
-main {padding:20px; max-width:900px;margin:auto;}
-input, select, textarea, button {font-family:'Press Start 2P',cursive;margin:5px 0;padding:8px;border-radius:5px;border:1px solid #00ff00;background:black;color:#00ff00;display:block;width:60%;margin-left:auto;margin-right:auto;}
-button {cursor:pointer;background:#00ff00;color:black;font-weight:bold;}
-button:hover {opacity:0.8;}
-.server-list {display:flex;flex-wrap:wrap;justify-content:center;gap:15px;margin-top:20px;}
-.server {background:rgba(0,0,0,0.85);border:2px solid #00ff00;padding:10px;border-radius:8px;width:250px;text-align:center;}
-.server img {width:100px;height:100px;object-fit:cover;margin-bottom:5px;}
-.status-online {color:blue;font-weight:bold;}
-.status-offline {color:red;font-weight:bold;}
-.stats,.activity-log,.admin-message,.quick-links{border:2px solid #00ff00;border-radius:8px;padding:10px;margin:20px auto;max-width:600px;}
-textarea {height:80px;}
+body {
+    font-family: 'Press Start 2P', cursive;
+    margin: 0;
+    background: black;
+    color: #00ff00;
+    text-align: center;
+    overflow-x: hidden;
+}
+canvas#bgCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+}
+header {
+    background-color: #111;
+    border-bottom: 2px solid #00ff00;
+    padding: 20px 0;
+}
+header h1 { font-size: 22px; margin: 0; }
+main { padding: 20px; max-width: 1200px; margin: auto; }
+input, select, textarea, button {
+    font-family: 'Press Start 2P', cursive;
+    margin: 5px 0;
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #00ff00;
+    background: black;
+    color: #00ff00;
+    display: block;
+    width: 60%;
+    margin-left: auto;
+    margin-right: auto;
+}
+button { cursor: pointer; background: #00ff00; color: black; font-weight: bold; }
+button:hover { opacity: 0.8; }
+.server-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin-top: 20px; }
+.server {
+    background: rgba(0,0,0,0.85);
+    border: 2px solid #00ff00;
+    padding: 10px;
+    border-radius: 8px;
+    width: 450px; /* wider card for long addresses */
+    text-align: center;
+    word-wrap: break-word;
+}
+.server img { width: 150px; height: 150px; object-fit: cover; margin-bottom: 5px; }
+textarea { height: 60px; }
+.stats, .activity-log, .admin-message, .quick-links { 
+    border: 2px solid #00ff00; 
+    border-radius: 8px; 
+    padding: 10px; 
+    margin: 20px auto; 
+    max-width: 600px;
+}
+#searchInput { margin-bottom: 20px; width: 80%; padding: 8px; border-radius: 5px; border: 1px solid #00ff00; background: black; color: #00ff00; }
+.copy-btn, .toggle-btn, .edit-btn, .remove-btn { margin-top:5px; padding:5px 8px; border:none; border-radius:5px; background:#00ff00; color:black; cursor:pointer; }
+.copy-btn:hover, .toggle-btn:hover, .edit-btn:hover, .remove-btn:hover { background:#00cc00; }
 </style>
 </head>
 <body>
 
 <canvas id="bgCanvas"></canvas>
 
-<header><h1>Admin Panel</h1></header>
+<header><h1>Admin Panel - OMAN SERVERS</h1></header>
 
 <main>
 <input type="text" id="searchInput" placeholder="Search servers by name...">
@@ -81,52 +126,69 @@ textarea {height:80px;}
 
 <div class="admin-message">
 <h3>Admin Notes</h3>
-<textarea id="adminNotes" placeholder="Write notes..."></textarea>
+<textarea id="adminNotes" placeholder="Write notes..." style="height:80px;"></textarea>
 <button onclick="saveNotes()">Save Notes</button>
 </div>
 
 <div class="activity-log" id="activityLog"><h3>Activity Log</h3></div>
 
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyD_LtDCU_fI1LazKYuuFBHf4tC_pzHAiCw",
   authDomain: "omanwebsite-ae60c.firebaseapp.com",
   projectId: "omanwebsite-ae60c",
-  storageBucket: "omanwebsite-ae60c.firebasestorage.app",
+  storageBucket: "omanwebsite-ae60c.appspot.com",
   messagingSenderId: "554330436845",
   appId: "1:554330436845:web:5e9e90857410848ee488e4"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// Password protection
 const password="0021";
-if(prompt("Enter admin password:")!==password){document.body.innerHTML="<h2 style='color:red;margin-top:50px;'>Access Denied</h2>";}
+if(prompt("Enter admin password:")!==password){
+    document.body.innerHTML="<h2 style='color:red;margin-top:50px;'>Access Denied</h2>";
+}
 
-// Fetch and render servers
-const serverList = document.getElementById('server-list');
-const searchInput = document.getElementById('searchInput');
+const serverList=document.getElementById('server-list');
+const searchInput=document.getElementById('searchInput');
+let servers=[];
 
-function renderServers(snapshot, filter=""){
+// Fetch servers from Firestore
+function fetchServers() {
+    db.collection('servers').get().then(snapshot=>{
+        servers=[];
+        snapshot.forEach(doc=>{
+            servers.push({...doc.data(), id: doc.id});
+        });
+        renderServers(searchInput.value);
+        updateStats();
+    });
+}
+
+// Render servers
+function renderServers(filter=""){
     serverList.innerHTML="";
-    snapshot.forEach(doc=>{
-        const s = doc.data();
-        if(!s.name.toLowerCase().includes(filter.toLowerCase())) return;
-        const div = document.createElement('div');
+    servers.filter(s=>s.name.toLowerCase().includes(filter.toLowerCase())).forEach((s,i)=>{
+        const div=document.createElement('div');
         div.className='server';
-        const statusClass = s.status==='Online'?'status-online':'status-offline';
+        const statusColor = s.status==='Online' ? 'blue' : 'red';
         div.innerHTML=`
             <h4>${s.name}</h4>
-            <div class="${statusClass}">Status: ${s.status}</div>
+            <div style="color:${statusColor}; font-weight:bold;">Status: ${s.status}</div>
             <img src="${s.img}">
-            <p>Address: ${s.addr}${s.port?':'+s.port:''}</p>
-            <p>Type: ${s.verType} Version: ${s.version}</p>
-            <p>${s.desc}</p>
-            <button onclick="copyAddr('${doc.id}')">Copy Address</button>
-            <button onclick="toggleStatus('${doc.id}')">Toggle Status</button>
+            <input value="${s.addr}">
+            <input value="${s.port}">
+            <select>
+                <option ${s.verType==='Java'?'selected':''}>Java</option>
+                <option ${s.verType==='Bedrock'?'selected':''}>Bedrock</option>
+            </select>
+            <input value="${s.version}">
+            <textarea>${s.desc}</textarea>
+            <button class="copy-btn" onclick="copyAddr('${s.addr}','${s.port}')">Copy Address</button>
+            <button class="toggle-btn" onclick="toggleStatus('${s.id}')">Toggle Status</button>
         `;
         serverList.appendChild(div);
     });
@@ -145,45 +207,75 @@ function addServer(){
     if(!name||!addr||!verType||!status||!version||!desc||fileInput.files.length===0){alert('Please fill all fields and choose an image');return;}
     const reader=new FileReader();
     reader.onload=function(e){
-        db.collection('servers').add({name, addr, port, verType, status, version, desc, img:e.target.result})
-        .then(()=>{alert('Server added!');document.getElementById('newName').value='';document.getElementById('newAddr').value='';document.getElementById('newPort').value='';document.getElementById('newVerType').value='';document.getElementById('newStatus').value='Online';document.getElementById('newVersion').value='';document.getElementById('newDesc').value='';document.getElementById('newImgFile').value='';});
+        db.collection('servers').add({
+            name, addr, port, verType, status, version, desc, img:e.target.result
+        }).then(()=>{
+            fetchServers();
+            alert('Server added!');
+            document.getElementById('newName').value='';
+            document.getElementById('newAddr').value='';
+            document.getElementById('newPort').value='';
+            document.getElementById('newVerType').value='';
+            document.getElementById('newStatus').value='Online';
+            document.getElementById('newVersion').value='';
+            document.getElementById('newDesc').value='';
+            document.getElementById('newImgFile').value='';
+        });
     };
     reader.readAsDataURL(fileInput.files[0]);
 }
 
-function copyAddr(id){
-    db.collection('servers').doc(id).get().then(doc=>{navigator.clipboard.writeText(doc.data().addr+(doc.data().port?':'+doc.data().port:'')); alert('Address copied');});
-}
-
+function copyAddr(addr,port){navigator.clipboard.writeText(addr+(port?':'+port:''));alert('Address copied');}
 function toggleStatus(id){
-    const ref=db.collection('servers').doc(id);
-    ref.get().then(doc=>{
-        const newStatus=doc.data().status==='Online'?'Offline':'Online';
-        ref.update({status:newStatus});
-    });
+    const server=servers.find(s=>s.id===id);
+    if(!server) return;
+    const newStatus = server.status==='Online'?'Offline':'Online';
+    db.collection('servers').doc(id).update({status:newStatus}).then(fetchServers);
 }
 
 function openPage(url){window.location.href=url;}
 function saveNotes(){db.collection('admin').doc('notes').set({text:document.getElementById('adminNotes').value});alert('Notes saved!');}
+function updateStats(){
+    const stats=document.getElementById('stats');
+    const total=servers.length;
+    const online=servers.filter(s=>s.status==='Online').length;
+    const offline=servers.filter(s=>s.status==='Offline').length;
+    const javaCount=servers.filter(s=>s.verType==='Java').length;
+    const bedCount=servers.filter(s=>s.verType==='Bedrock').length;
+    stats.innerHTML=`<h3>Statistics</h3>Total: ${total} | Online: ${online} | Offline: ${offline} | Java: ${javaCount} | Bedrock: ${bedCount}`;
+}
 
 // Load notes
-db.collection('admin').doc('notes').get().then(doc=>{if(doc.exists){document.getElementById('adminNotes').value=doc.data().text;}});
-
-searchInput.addEventListener('input',()=>{
-    db.collection('servers').get().then(snapshot=>renderServers(snapshot,searchInput.value));
+db.collection('admin').doc('notes').get().then(doc=>{
+    if(doc.exists) document.getElementById('adminNotes').value=doc.data().text||'';
 });
 
-db.collection('servers').onSnapshot(snapshot=>renderServers(snapshot,searchInput.value));
+searchInput.addEventListener('input',()=>renderServers(searchInput.value));
+fetchServers();
 
 // Matrix background animation
 const canvas = document.getElementById('bgCanvas');
 const ctx = canvas.getContext('2d');
-canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()";
-const fontSize = 14; const columns = Math.floor(canvas.width/fontSize); const drops = Array(columns).fill(1);
-function drawMatrix(){ctx.fillStyle="rgba(0,0,0,0.05)";ctx.fillRect(0,0,canvas.width,canvas.height);ctx.fillStyle="#00ff00";ctx.font=fontSize+"px monospace";for(let i=0;i<drops.length;i++){const text=letters.charAt(Math.floor(Math.random()*letters.length));ctx.fillText(text,i*fontSize,drops[i]*fontSize);drops[i]++;if(drops[i]*fontSize>canvas.height&&Math.random()>0.975)drops[i]=0;}}
-setInterval(drawMatrix,50);
-window.addEventListener('resize',()=>{canvas.width=window.innerWidth;canvas.height=window.innerHeight;});
+const fontSize = 14;
+const columns = Math.floor(canvas.width / fontSize);
+const drops = Array(columns).fill(1);
+function drawMatrix(){
+    ctx.fillStyle = "rgba(0,0,0,0.05)";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = "#00ff00";
+    ctx.font = fontSize + "px monospace";
+    for(let i=0;i<drops.length;i++){
+        const text = letters.charAt(Math.floor(Math.random()*letters.length));
+        ctx.fillText(text, i*fontSize, drops[i]*fontSize);
+        drops[i]++;
+        if(drops[i]*fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+    }
+}
+setInterval(drawMatrix, 50);
+window.addEventListener('resize', () => {canvas.width = window.innerWidth; canvas.height = window.innerHeight;});
 </script>
 
 </body>
