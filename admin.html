@@ -57,7 +57,7 @@ textarea { height: 60px; }
 .comment {
     border-bottom: 1px solid #00ff00;
     padding: 5px 0;
-    text-align: center; /* centered comments */
+    text-align: center;
 }
 .comment span { font-weight: bold; }
 </style>
@@ -143,8 +143,7 @@ const firebaseConfig = {
   projectId: "omanwebsite-ae60c",
   storageBucket: "omanwebsite-ae60c.appspot.com",
   messagingSenderId: "554330436845",
-  appId: "1:554330436845:web:5e9e90857410848ee488e4",
-  measurementId: "G-6HBLKC0N5L"
+  appId: "1:554330436845:web:5e9e90857410848ee488e4"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
@@ -201,11 +200,12 @@ function addServer(){
     const desc=document.getElementById('newDesc').value;
     const fileInput=document.getElementById('newImgFile');
     if(!name||!addr||!verType||!status||!version||!desc||fileInput.files.length===0){alert('Please fill all fields and choose an image');return;}
+    
     const reader=new FileReader();
     reader.onload=function(e){
-        db.collection('servers').add({name,addr,port,verType,status,version,desc,img:e.target.result}).then(()=>{
-            fetchServers();
-            alert('Server added!');
+        const imgData = e.target.result;
+        db.collection('servers').add({name, addr, port, verType, status, version, desc, img: imgData})
+        .then(()=>{fetchServers(); alert('Server added!');
             document.getElementById('newName').value='';
             document.getElementById('newAddr').value='';
             document.getElementById('newPort').value='';
@@ -232,9 +232,8 @@ document.getElementById('adminNotes').value=localStorage.getItem('adminNotes')||
 searchInput.addEventListener('input',()=>renderServers(searchInput.value));
 fetchServers();
 
-// Comments functions
+// Comments
 const commentList=document.getElementById('commentList');
-
 function fetchComments(){
     commentList.innerHTML='';
     db.collection('comments').orderBy('timestamp','desc').get().then(snapshot=>{
@@ -247,24 +246,10 @@ function fetchComments(){
         });
     });
 }
-
-function deleteComment(id){
-    db.collection('comments').doc(id).delete().then(fetchComments);
-}
-
-function clearComments(){
-    if(confirm('Clear all comments?')){
-        db.collection('comments').get().then(snapshot=>{
-            snapshot.forEach(doc=>{doc.ref.delete();});
-            setTimeout(fetchComments,500);
-        });
-    }
-}
-
+function deleteComment(id){db.collection('comments').doc(id).delete().then(fetchComments);}
+function clearComments(){if(confirm('Clear all comments?')){db.collection('comments').get().then(snapshot=>{snapshot.forEach(doc=>{doc.ref.delete();}); setTimeout(fetchComments,500);});}}
 function refreshComments(){fetchComments();}
-
 fetchComments();
-
 </script>
 </body>
 </html>
