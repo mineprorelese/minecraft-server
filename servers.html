@@ -5,27 +5,31 @@
 <title>OMAN SERVERS</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
-body { font-family: 'Press Start 2P', cursive; margin:0; background:black; color:#00ff00; text-align:center; }
-main { margin-top:50px; max-width:900px; margin-left:auto; margin-right:auto; }
-.server { background: rgba(0,0,0,0.85); border:2px solid #00ff00; padding:10px; margin:10px auto; border-radius:8px; width:300px; }
-.server img { width:100px; height:100px; object-fit:cover; margin-bottom:5px; }
-.copy-btn { margin-top:5px; cursor:pointer; }
-.status-online { color:blue; font-weight:bold; }
-.status-offline { color:red; font-weight:bold; }
+body {font-family: 'Press Start 2P', cursive; margin:0; background:black; color:#00ff00; text-align:center;}
+header {background:#111; border-bottom:2px solid #00ff00; padding:15px 0;}
+header h1 {margin:0; color:#00ff00;}
+nav a {color:#00ff00; margin:0 15px; text-decoration:none;}
+nav a:hover {text-decoration:underline;}
+main {padding:20px; max-width:1000px; margin:auto;}
+.server-list {display:flex; flex-wrap:wrap; justify-content:center; gap:15px; margin-top:20px;}
+.server {background:rgba(0,0,0,0.85); border:2px solid #00ff00; padding:10px; border-radius:8px; width:250px; text-align:center;}
+.server img {width:100px; height:100px; object-fit:cover; margin-bottom:5px;}
+.status-online {color:blue; font-weight:bold;}
+.status-offline {color:red; font-weight:bold;}
 </style>
 </head>
 <body>
 
 <header>
-<h1>OMAN SERVERS by Alhadhrami</h1>
-<p>Press <b>Ctrl + A</b> to open Admin Panel</p>
+<h1>OMAN SERVERS</h1>
+<nav><a href="index.html">Home</a></nav>
 </header>
 
 <main>
-<input type="text" id="searchInput" placeholder="Search servers by name..." style="margin-bottom:20px; padding:8px; width:60%; background:black; color:#00ff00; border:1px solid #00ff00;">
-<div id="serverList"></div>
+<div class="server-list" id="server-list"></div>
 </main>
 
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
@@ -39,40 +43,29 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+const serverList = document.getElementById('server-list');
 
-const searchInput = document.getElementById('searchInput');
-const serverList = document.getElementById('serverList');
-
-function renderServers(filter=""){
-    db.collection('servers').get().then(snapshot=>{
-        serverList.innerHTML="";
-        snapshot.forEach(doc=>{
-            const s = doc.data();
-            if(!s.name.toLowerCase().includes(filter.toLowerCase())) return;
-            const div = document.createElement('div');
-            div.className='server';
-            const statusClass = s.status==='Online' ? 'status-online':'status-offline';
-            div.innerHTML=`
-                <h3>${s.name}</h3>
-                <div class="${statusClass}">${s.status}</div>
-                <img src="${s.img}">
-                <p>${s.addr}${s.port?':'+s.port:''}</p>
-                <p>${s.verType} - ${s.version}</p>
-                <p>${s.desc}</p>
-                <button class="copy-btn" onclick="copyAddr('${s.addr}','${s.port}')">Copy Address</button>
-            `;
-            serverList.appendChild(div);
-        });
+function renderServers(snapshot){
+    serverList.innerHTML = '';
+    snapshot.forEach(doc => {
+        const s = doc.data();
+        const div = document.createElement('div');
+        div.className='server';
+        const statusClass = s.status==='Online'?'status-online':'status-offline';
+        div.innerHTML = `
+            <h4>${s.name}</h4>
+            <div class="${statusClass}">Status: ${s.status}</div>
+            <img src="${s.img}">
+            <p>Address: ${s.addr}${s.port?':'+s.port:''}</p>
+            <p>Version: ${s.verType} ${s.version}</p>
+            <p>${s.desc}</p>
+        `;
+        serverList.appendChild(div);
     });
 }
 
-function copyAddr(addr,port){navigator.clipboard.writeText(addr+(port?':'+port:'')); alert('Address copied');}
-searchInput.addEventListener('input',()=>renderServers(searchInput.value));
-renderServers();
-
-// Admin shortcut
-document.addEventListener('keydown', e=>{
-    if(e.ctrlKey && e.key.toLowerCase()=='a'){window.location.href='admin.html';}
+db.collection('servers').onSnapshot(snapshot=>{
+    renderServers(snapshot);
 });
 </script>
 
