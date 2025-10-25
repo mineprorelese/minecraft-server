@@ -58,23 +58,19 @@ button:hover {
     box-shadow: 0 0 20px #00ffcc, 0 0 40px #00ffcc inset;
     transform: scale(1.05);
 }
+
+/* Feature Requests Styles */
 .feature-section {
     margin-top: 50px;
     width: 70%;
-    max-width: 600px;
-    text-align: left;
+    max-width: 700px;
+    text-align: center;
     border: 2px solid #00ffcc;
-    border-radius: 10px;
-    padding: 15px;
-    background: rgba(0,0,0,0.85);
+    border-radius: 15px;
+    padding: 20px;
+    background: rgba(0,0,0,0.9);
 }
-.feature-section h3 { text-align: center; color: #00ffcc; }
-.feature { 
-    border-bottom: 1px solid #00ffcc; 
-    padding: 5px 0; 
-}
-.feature:last-child { border-bottom: none; }
-.feature strong { color: #00ffcc; }
+.feature-section h3 { margin-bottom: 15px; color: #00ffcc; }
 input, textarea {
     width: 90%;
     margin: 5px auto;
@@ -83,9 +79,27 @@ input, textarea {
     color: #00ffcc;
     border: 1px solid #00ffcc;
     border-radius: 5px;
-    padding: 8px;
+    padding: 10px;
     font-family: 'Press Start 2P', cursive;
 }
+#featureList {
+    margin-top: 20px;
+    max-height: 400px;
+    overflow-y: auto;
+    text-align: left;
+}
+.feature {
+    border-left: 3px solid #00ffcc;
+    padding: 10px;
+    margin-bottom: 10px;
+    background: rgba(0,0,0,0.8);
+    border-radius: 5px;
+    transition: all 0.3s ease;
+}
+.feature:nth-child(even) { border-color: #ff00ff; }
+.feature:hover { transform: scale(1.02); box-shadow: 0 0 10px #00ffcc; }
+.feature strong { color: #00ffcc; }
+.feature small { color: #aaa; font-size: 8px; float: right; }
 </style>
 </head>
 <body>
@@ -145,32 +159,48 @@ function draw(){
 setInterval(draw, 50);
 window.addEventListener('resize', ()=>{canvas.width = window.innerWidth; canvas.height = window.innerHeight;});
 
-// Feature Requests
-let features = JSON.parse(localStorage.getItem('features')||'[]');
+// -------- Feature Requests with npoint.io ----------
+const API_URL = "https://api.npoint.io/92f9eb9cee57ecd2ba23"; // Replace with your own npoint API
 
-function renderFeatures(){
+async function fetchFeatures(){
+    try {
+        const res = await fetch(API_URL);
+        const data = await res.json();
+        renderFeatures(data);
+    } catch(err) {
+        console.error("Error fetching features:", err);
+    }
+}
+
+function renderFeatures(features){
     const list = document.getElementById('featureList');
     list.innerHTML = '';
     features.slice().reverse().forEach(f=>{
         const div = document.createElement('div');
         div.className='feature';
-        div.innerHTML = `<strong>${f.name}</strong>: ${f.text}`;
+        const date = f.date ? new Date(f.date).toLocaleString() : '';
+        div.innerHTML = `<strong>${f.name}</strong>: ${f.text} <small>${date}</small>`;
         list.appendChild(div);
     });
 }
 
-function addFeature(){
+async function addFeature(){
     const name = document.getElementById('featureName').value.trim();
     const text = document.getElementById('featureText').value.trim();
     if(!name || !text){ alert('Please enter your name and suggestion'); return; }
-    features.push({name, text});
+    
+    // For now we just add to local storage (demo)
+    let features = JSON.parse(localStorage.getItem('features')||'[]');
+    features.push({name, text, date: new Date().toISOString()});
     localStorage.setItem('features', JSON.stringify(features));
     document.getElementById('featureName').value='';
     document.getElementById('featureText').value='';
-    renderFeatures();
+    renderFeatures(features);
+
+    // For global updates, you'd need to POST to your npoint.io endpoint (premium plan supports PUT/POST)
 }
 
-renderFeatures();
+renderFeatures(JSON.parse(localStorage.getItem('features')||'[]'));
 </script>
 
 </body>
