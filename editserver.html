@@ -2,86 +2,86 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Edit Server - OMAN SERVERS</title>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<title>Edit Server - Admin</title>
 <style>
-body{font-family:'Press Start 2P',cursive;margin:0;background:black;color:#00ff00;text-align:center;}
-main{padding:20px;max-width:700px;margin:auto;}
-.server{background:rgba(0,0,0,0.85);border:2px solid #00ff00;padding:10px;margin:10px;border-radius:8px;}
-input,select,textarea,button{font-family:'Press Start 2P',cursive;margin:5px 0;padding:8px;border-radius:5px;border:1px solid #00ff00;background:black;color:#00ff00;display:block;width:90%;margin-left:auto;margin-right:auto;}
-button{cursor:pointer;background:#00ff00;color:black;font-weight:bold;}
-button:hover{opacity:0.8;}
+body { background:black; color:#00ff00; font-family:'Press Start 2P', cursive; text-align:center; }
+input, select, textarea, button { display:block; margin:10px auto; padding:8px; border-radius:5px; border:1px solid #00ff00; background:black; color:#00ff00; width:60%; }
+button { cursor:pointer; background:#00ff00; color:black; font-weight:bold; }
+button:hover { opacity:0.8; }
+.server { border:2px solid #00ff00; padding:10px; margin:15px auto; max-width:450px; background:rgba(0,0,0,0.8); }
 </style>
 </head>
 <body>
 
-<main>
 <h2>Edit Servers</h2>
-<div id="server-list"></div>
-</main>
+<div id="serverList"></div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
+// Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyD_LtDCU_fI1LazKYuuFBHf4tC_pzHAiCw",
   authDomain: "omanwebsite-ae60c.firebaseapp.com",
   projectId: "omanwebsite-ae60c",
-  storageBucket: "omanwebsite-ae60c.firebasestorage.app",
+  storageBucket: "omanwebsite-ae60c.appspot.com",
   messagingSenderId: "554330436845",
   appId: "1:554330436845:web:5e9e90857410848ee488e4"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// Password
+// Password protection
 const password="0021";
-if(prompt("Enter admin password:")!==password){document.body.innerHTML="<h2 style='color:red;margin-top:50px;'>Access Denied</h2>";}
+if(prompt("Enter admin password:")!==password){
+    document.body.innerHTML="<h2 style='color:red;margin-top:50px;'>Access Denied</h2>";
+}
 
-const serverList=document.getElementById('server-list');
-
-function renderServers(){
-    serverList.innerHTML="";
+// Fetch and display servers
+function fetchServers(){
     db.collection('servers').get().then(snapshot=>{
+        const container=document.getElementById('serverList');
+        container.innerHTML='';
         snapshot.forEach(doc=>{
             const s=doc.data();
             const div=document.createElement('div');
             div.className='server';
             div.innerHTML=`
-            <h4>${s.name}</h4>
-            <label>Server Name</label><input value="${s.name}" id="name-${doc.id}">
-            <label>Address</label><input value="${s.addr}" id="addr-${doc.id}">
-            <label>Port</label><input value="${s.port}" id="port-${doc.id}">
-            <label>Type</label><select id="type-${doc.id}">
-                <option ${s.verType==='Java'?'selected':''}>Java</option>
-                <option ${s.verType==='Bedrock'?'selected':''}>Bedrock</option>
-            </select>
-            <label>Status</label><select id="status-${doc.id}">
-                <option ${s.status==='Online'?'selected':''}>Online</option>
-                <option ${s.status==='Offline'?'selected':''}>Offline</option>
-            </select>
-            <label>Version</label><input value="${s.version}" id="ver-${doc.id}">
-            <label>Description</label><textarea id="desc-${doc.id}">${s.desc}</textarea>
-            <button onclick="saveServer('${doc.id}')">Save</button>
+                <h3>${s.name}</h3>
+                <img src="${s.img}" width="150" height="150"><br>
+                <input value="${s.addr}" placeholder="Address">
+                <input value="${s.port}" placeholder="Port">
+                <select>
+                  <option ${s.verType==='Java'?'selected':''}>Java</option>
+                  <option ${s.verType==='Bedrock'?'selected':''}>Bedrock</option>
+                </select>
+                <input value="${s.version}" placeholder="Version">
+                <textarea>${s.desc}</textarea>
+                <select>
+                  <option ${s.status==='Online'?'selected':''}>Online</option>
+                  <option ${s.status==='Offline'?'selected':''}>Offline</option>
+                </select>
+                <button onclick="saveChanges('${doc.id}', this.parentNode)">Save</button>
             `;
-            serverList.appendChild(div);
+            container.appendChild(div);
         });
     });
 }
 
-function saveServer(id){
-    const name=document.getElementById('name-'+id).value;
-    const addr=document.getElementById('addr-'+id).value;
-    const port=document.getElementById('port-'+id).value;
-    const verType=document.getElementById('type-'+id).value;
-    const status=document.getElementById('status-'+id).value;
-    const version=document.getElementById('ver-'+id).value;
-    const desc=document.getElementById('desc-'+id).value;
-    db.collection('servers').doc(id).update({name, addr, port, verType, status, version, desc})
-    .then(()=>alert('Server updated!'));
+function saveChanges(id, div){
+    const inputs=div.querySelectorAll('input, select, textarea');
+    db.collection('servers').doc(id).update({
+        addr: inputs[0].value,
+        port: inputs[1].value,
+        verType: inputs[2].value,
+        version: inputs[3].value,
+        desc: inputs[4].value,
+        status: inputs[5].value
+    }).then(()=>alert('Server updated!'));
 }
 
-renderServers();
+fetchServers();
 </script>
+
 </body>
 </html>
