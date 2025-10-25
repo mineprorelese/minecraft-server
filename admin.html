@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Admin Panel - Oman Servers</title>
+<title>Admin Panel - MineServer Network</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
 body {
@@ -53,7 +53,7 @@ button:hover { opacity: 0.8; }
     text-align: center;
 }
 .server img { width: 100px; height: 100px; object-fit: cover; margin-bottom: 5px; }
-.stats, .activity-log, .admin-message, .quick-links { 
+.stats, .activity-log, .admin-message, .quick-links, .user-comments { 
     border: 2px solid #00ff00; 
     border-radius: 8px; 
     padding: 10px; 
@@ -61,14 +61,7 @@ button:hover { opacity: 0.8; }
     max-width: 600px;
 }
 textarea { height: 60px; }
-.comment-card { 
-    border: 1px solid #00ff00; 
-    padding: 5px; 
-    margin: 5px 0; 
-    border-radius: 5px; 
-    text-align: left; 
-    background: rgba(0,0,0,0.7);
-}
+.comment-card { background: rgba(0,0,0,0.85); border: 1px solid #00ff00; padding: 5px; margin:5px 0; border-radius:5px; }
 </style>
 </head>
 <body>
@@ -126,6 +119,7 @@ textarea { height: 60px; }
 <button onclick="openPage('editserver.html')">Edit Server</button>
 <button onclick="openPage('removeserver.html')">Remove Server</button>
 <button onclick="openPage('setstatus.html')">Set Status</button>
+<button onclick="openPage('comments.html')">User Comments</button>
 </div>
 
 <div class="admin-message">
@@ -136,23 +130,21 @@ textarea { height: 60px; }
 
 <div class="activity-log" id="activityLog"><h3>Activity Log</h3></div>
 
-<!-- Comments Admin Section -->
-<div class="comments-admin" style="border:2px solid #00ff00; border-radius:8px; padding:10px; margin:20px auto; max-width:600px;">
-  <h3>User Comments / Suggestions</h3>
-  <div id="adminCommentsList"></div>
-  <button onclick="fetchAdminComments()">Refresh Comments</button>
-  <button onclick="clearAllComments()" style="margin-left:10px;">Clear All Comments</button>
+<div class="user-comments">
+<h3>User Suggestions / Comments</h3>
+<div id="adminCommentsList"></div>
+<button onclick="clearAllComments()">Delete All Comments</button>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
 <script>
 const password="0021";
-if(prompt("Enter admin password:")!==password){
-    document.body.innerHTML="<h2 style='color:red;margin-top:50px;'>Access Denied</h2>";
-}
+if(prompt("Enter admin password:")!==password){document.body.innerHTML="<h2 style='color:red;margin-top:50px;'>Access Denied</h2>";}
 
-// Firebase
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyD_LtDCU_fI1LazKYuuFBHf4tC_pzHAiCw",
   authDomain: "omanwebsite-ae60c.firebaseapp.com",
@@ -165,17 +157,28 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-let servers=JSON.parse(localStorage.getItem('servers')||'[]');
-const serverList=document.getElementById('server-list');
-const searchInput=document.getElementById('searchInput');
+// ------------------- Servers -------------------
+const serverList = document.getElementById('server-list');
+const searchInput = document.getElementById('searchInput');
+let servers = [];
 
-function renderServers(filter=""){
-    serverList.innerHTML="";
-    servers.filter(s=>s.name.toLowerCase().includes(filter.toLowerCase())).forEach((s,i)=>{
-        const div=document.createElement('div'); 
-        div.className='server';
-        const statusColor = s.status==='Online' ? 'blue' : 'red';
-        div.innerHTML=`
+function fetchServers() {
+    db.collection('servers').orderBy('name').get().then(snapshot => {
+        servers = [];
+        snapshot.forEach(doc => {
+            servers.push({...doc.data(), id: doc.id});
+        });
+        renderServers(searchInput.value);
+    });
+}
+
+function renderServers(filter="") {
+    serverList.innerHTML = "";
+    servers.filter(s => s.name.toLowerCase().includes(filter.toLowerCase())).forEach((s,i) => {
+        const div = document.createElement('div'); 
+        div.className = 'server';
+        const statusColor = s.status === 'Online' ? 'blue' : 'red';
+        div.innerHTML = `
             <h4>${s.name}</h4>
             <div style="color:${statusColor}; font-weight:bold;">Status: ${s.status}</div>
             <img src="${s.img}">
@@ -188,75 +191,61 @@ function renderServers(filter=""){
             <input value="${s.version}">
             <textarea>${s.desc}</textarea>
             <button onclick="copyAddr(${i})">Copy Address</button>
-            <button onclick="toggleStatus(${i})">Toggle Status</button>
+            <button onclick="toggleStatus('${s.id}')">Toggle Status</button>
         `;
         serverList.appendChild(div);
     });
 }
 
+function copyAddr(i){navigator.clipboard.writeText(servers[i].addr+(servers[i].port?':'+servers[i].port:''));alert('Address copied');}
+
+function toggleStatus(id){
+    const server = servers.find(s => s.id===id);
+    if(server){
+        const newStatus = server.status==='Online'?'Offline':'Online';
+        db.collection('servers').doc(id).update({status:newStatus}).then(()=>{
+            server.status=newStatus;
+            renderServers(searchInput.value);
+        });
+    }
+}
+
 function addServer(){
-    const name=document.getElementById('newName').value;
-    const addr=document.getElementById('newAddr').value;
-    const port=document.getElementById('newPort').value;
-    const verType=document.getElementById('newVerType').value;
-    const status=document.getElementById('newStatus').value;
-    const version=document.getElementById('newVersion').value;
-    const desc=document.getElementById('newDesc').value;
-    const fileInput=document.getElementById('newImgFile');
+    const name = document.getElementById('newName').value;
+    const addr = document.getElementById('newAddr').value;
+    const port = document.getElementById('newPort').value;
+    const verType = document.getElementById('newVerType').value;
+    const status = document.getElementById('newStatus').value;
+    const version = document.getElementById('newVersion').value;
+    const desc = document.getElementById('newDesc').value;
+    const fileInput = document.getElementById('newImgFile');
     if(!name||!addr||!verType||!status||!version||!desc||fileInput.files.length===0){alert('Please fill all fields and choose an image');return;}
     const reader=new FileReader();
     reader.onload=function(e){
-        servers.push({name, addr, port, verType, status, version, desc, img:e.target.result});
-        localStorage.setItem('servers',JSON.stringify(servers));
-        renderServers(searchInput.value);
-        alert('Server added!');
-        document.getElementById('newName').value='';
-        document.getElementById('newAddr').value='';
-        document.getElementById('newPort').value='';
-        document.getElementById('newVerType').value='';
-        document.getElementById('newStatus').value='Online';
-        document.getElementById('newVersion').value='';
-        document.getElementById('newDesc').value='';
-        document.getElementById('newImgFile').value='';
+        db.collection('servers').add({name, addr, port, verType, status, version, desc, img:e.target.result}).then(()=>{
+            alert('Server added!');
+            document.getElementById('newName').value='';
+            document.getElementById('newAddr').value='';
+            document.getElementById('newPort').value='';
+            document.getElementById('newVerType').value='';
+            document.getElementById('newStatus').value='Online';
+            document.getElementById('newVersion').value='';
+            document.getElementById('newDesc').value='';
+            document.getElementById('newImgFile').value='';
+            fetchServers();
+        });
     };
     reader.readAsDataURL(fileInput.files[0]);
 }
 
-function copyAddr(i){navigator.clipboard.writeText(servers[i].addr+(servers[i].port?':'+servers[i].port:''));alert('Address copied');}
-function toggleStatus(i){servers[i].status=servers[i].status==='Online'?'Offline':'Online';localStorage.setItem('servers',JSON.stringify(servers));renderServers(searchInput.value);}
 function openPage(url){window.location.href=url;}
 function saveNotes(){localStorage.setItem('adminNotes',document.getElementById('adminNotes').value);alert('Notes saved!');}
 document.getElementById('adminNotes').value=localStorage.getItem('adminNotes')||'';
 
 searchInput.addEventListener('input',()=>renderServers(searchInput.value));
-renderServers();
+fetchServers();
 
-// Matrix background animation
-const canvas = document.getElementById('bgCanvas');
-const ctx = canvas.getContext('2d');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()";
-const fontSize = 14;
-const columns = Math.floor(canvas.width / fontSize);
-const drops = Array(columns).fill(1);
-
-function drawMatrix(){
-    ctx.fillStyle = "rgba(0,0,0,0.05)";
-    ctx.fillRect(0,0,canvas.width,canvas.height);
-    ctx.fillStyle = "#00ff00";
-    ctx.font = fontSize + "px monospace";
-    for(let i=0;i<drops.length;i++){
-        const text = letters.charAt(Math.floor(Math.random()*letters.length));
-        ctx.fillText(text, i*fontSize, drops[i]*fontSize);
-        drops[i]++;
-        if(drops[i]*fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
-    }
-}
-setInterval(drawMatrix, 50);
-window.addEventListener('resize', () => {canvas.width = window.innerWidth; canvas.height = window.innerHeight;});
-
-// ------------------- Comments Admin Functions -------------------
+// ------------------- Comments -------------------
 function fetchAdminComments() {
   const container = document.getElementById('adminCommentsList');
   container.innerHTML = '';
@@ -265,27 +254,33 @@ function fetchAdminComments() {
           const c = doc.data();
           const div = document.createElement('div');
           div.className = 'comment-card';
-          div.innerHTML = `
-            <b>${c.username || 'Anonymous'}:</b> ${c.comment} 
-            <button onclick="deleteComment('${doc.id}')">Delete</button>
-          `;
+          div.innerHTML = `<b>${c.username||'Anonymous'}:</b> ${c.comment} 
+          <button onclick="deleteComment('${doc.id}')">Delete</button>`;
           container.appendChild(div);
       });
   });
 }
-function deleteComment(id){
-    if(confirm('Are you sure you want to delete this comment?')){
-        db.collection('comments').doc(id).delete().then(()=>fetchAdminComments());
-    }
-}
-function clearAllComments(){
-    if(confirm('Are you sure you want to delete all comments?')){
-        db.collection('comments').get().then(snapshot=>{
-            snapshot.forEach(doc=>doc.ref.delete());
-        }).then(()=>fetchAdminComments());
-    }
-}
+function deleteComment(id){if(confirm('Are you sure you want to delete this comment?')){db.collection('comments').doc(id).delete().then(()=>fetchAdminComments());}}
+function clearAllComments(){if(confirm('Are you sure you want to delete all comments?')){db.collection('comments').get().then(s=>{s.forEach(doc=>doc.ref.delete());}).then(()=>fetchAdminComments());}}
 fetchAdminComments();
+
+// ------------------- Matrix Background -------------------
+const canvas = document.getElementById('bgCanvas');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()";
+const fontSize = 14; const columns = Math.floor(canvas.width/fontSize); const drops = Array(columns).fill(1);
+function drawMatrix(){
+    ctx.fillStyle="rgba(0,0,0,0.05)"; ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle="#00ff00"; ctx.font=fontSize+"px monospace";
+    for(let i=0;i<drops.length;i++){
+        const text = letters.charAt(Math.floor(Math.random()*letters.length));
+        ctx.fillText(text,i*fontSize,drops[i]*fontSize);
+        drops[i]++; if(drops[i]*fontSize>canvas.height && Math.random()>0.975)drops[i]=0;
+    }
+}
+setInterval(drawMatrix,50);
+window.addEventListener('resize',()=>{canvas.width=window.innerWidth; canvas.height=window.innerHeight;});
 </script>
 
 </body>
