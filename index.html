@@ -5,67 +5,50 @@
 <title>OMAN SERVERS by Alhadhrami</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
-body {font-family: 'Press Start 2P', cursive; margin:0; background:black; color:#00ff00; text-align:center; overflow-x:hidden;}
-canvas#bgCanvas {position: fixed; top:0; left:0; width:100%; height:100%; z-index:-1;}
-header {background:#111; border-bottom:2px solid #00ff00; padding:20px 0;}
-header h1 {font-size:28px; margin:0; color:#00ff00; text-shadow:0 0 5px #00ff00;}
-main {padding:20px; max-width:900px; margin:auto;}
-.nav-btn {display:block; margin:20px auto; padding:15px 30px; font-size:14px; border-radius:8px; border:2px solid #00ff00; background:black; color:#00ff00; cursor:pointer; text-decoration:none; transition: all 0.2s;}
-.nav-btn:hover {background:#00ff00; color:black; box-shadow:0 0 10px #00ff00;}
+body {
+    margin: 0;
+    font-family: 'Press Start 2P', cursive;
+    background: #0a0a0a;
+    color: #00ff00;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    text-align: center;
+}
+h1 {
+    font-size: 26px;
+    margin-bottom: 10px;
+}
+h2 {
+    font-size: 14px;
+    margin-bottom: 40px;
+    color: #55ff55;
+}
+a {
+    display: block;
+    margin: 15px auto;
+    padding: 15px 30px;
+    text-decoration: none;
+    color: black;
+    background: #00ff00;
+    border-radius: 8px;
+    transition: 0.3s;
+}
+a:hover {
+    background: #00cc00;
+    transform: scale(1.05);
+}
 </style>
 </head>
 <body>
-<canvas id="bgCanvas"></canvas>
 
-<header><h1>OMAN SERVERS by Alhadhrami</h1></header>
+<h1>OMAN SERVERS</h1>
+<h2>by Alhadhrami</h2>
 
-<main>
-<a href="servers.html" class="nav-btn">View Servers</a>
-<a href="comments.html" class="nav-btn">Suggestions / Comments</a>
-</main>
-
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script>
-const firebaseConfig = {
-  apiKey: "AIzaSyD_LtDCU_fI1LazKYuuFBHf4tC_pzHAiCw",
-  authDomain: "omanwebsite-ae60c.firebaseapp.com",
-  projectId: "omanwebsite-ae60c",
-  storageBucket: "omanwebsite-ae60c.firebasestorage.app",
-  messagingSenderId: "554330436845",
-  appId: "1:554330436845:web:5e9e90857410848ee488e4"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-</script>
-
-<script>
-// Matrix background animation
-const canvas = document.getElementById('bgCanvas');
-const ctx = canvas.getContext('2d');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()";
-const fontSize = 14;
-const columns = Math.floor(canvas.width / fontSize);
-const drops = Array(columns).fill(1);
-
-function drawMatrix(){
-    ctx.fillStyle = "rgba(0,0,0,0.05)";
-    ctx.fillRect(0,0,canvas.width,canvas.height);
-    ctx.fillStyle = "#00ff00";
-    ctx.font = fontSize + "px monospace";
-    for(let i=0;i<drops.length;i++){
-        const text = letters.charAt(Math.floor(Math.random()*letters.length));
-        ctx.fillText(text, i*fontSize, drops[i]*fontSize);
-        drops[i]++;
-        if(drops[i]*fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
-    }
-}
-setInterval(drawMatrix,50);
-window.addEventListener('resize',()=>{canvas.width=window.innerWidth; canvas.height=window.innerHeight;});
-</script>
+<a href="servers.html">View Servers</a>
+<a href="comments.html">View Suggestions</a>
 
 </body>
 </html>
