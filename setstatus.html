@@ -2,53 +2,101 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Set Server Status - MineServer Network</title>
+<title>Set Server Status (Hidden)</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
-body{ font-family:'Press Start 2P', cursive; background:#222 url('https://i.imgur.com/fZ0oZqP.png') repeat; background-size:64px; color:#fff; margin:0; text-align:center; }
-header{ background:#1976d2; padding:15px; }
-header h1{ font-size:18px; margin:0; }
-#server-list{ display:flex; flex-wrap:wrap; gap:20px; justify-content:center; padding:20px; }
-.server{ background:rgba(30,30,30,0.85); width:250px; padding:15px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.5); text-align:center; }
-.server img{ width:100px; height:100px; object-fit:cover; border-radius:10px; margin-bottom:10px; }
-.server h3{ margin:5px 0; }
-.server p{ font-size:14px; word-break:break-word; }
-button.status-btn{ padding:5px 10px; margin-top:5px; border:none; border-radius:5px; cursor:pointer; font-size:12px; background:#1976d2; color:#fff; }
-button.status-btn:hover{ background:#2196f3; }
+body {
+    font-family: 'Press Start 2P', cursive;
+    background: black;
+    color: #00ff00;
+    text-align: center;
+}
+header {
+    background: #111;
+    padding: 20px 0;
+    border-bottom: 2px solid #00ff00;
+}
+header h1 { margin: 0; font-size: 22px; }
+main { padding: 20px; max-width: 900px; margin: auto; }
+button {
+    cursor: pointer;
+    background: #00ff00;
+    color: black;
+    font-weight: bold;
+    border: none;
+    padding: 5px 10px;
+    margin: 5px 0;
+}
+button:hover { opacity: 0.8; }
+.server { 
+    background: rgba(0,0,0,0.85);
+    border: 2px solid #00ff00;
+    border-radius: 8px;
+    padding: 10px;
+    margin: 15px auto;
+    width: 300px;
+    text-align: center;
+}
+.server div { margin-bottom: 5px; font-weight: bold; }
 </style>
 </head>
 <body>
-<header><h1>Set Server Status</h1></header>
-<div id="server-list"></div>
 
+<header><h1>Set Server Status</h1></header>
+<main>
+<div id="server-list"></div>
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
-const password="0021";
-if(prompt("Enter password:")!==password){ 
-    alert("Access Denied"); 
-    document.body.innerHTML="<h2 style='color:red;margin-top:50px;'>Access Denied</h2>"; 
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyD_LtDCU_fI1LazKYuuFBHf4tC_pzHAiCw",
+  authDomain: "omanwebsite-ae60c.firebaseapp.com",
+  projectId: "omanwebsite-ae60c",
+  storageBucket: "omanwebsite-ae60c.appspot.com",
+  messagingSenderId: "554330436845",
+  appId: "1:554330436845:web:5e9e90857410848ee488e4"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// Password protection
+const password = "0021";
+if(prompt("Enter admin password:") !== password){
+    document.body.innerHTML="<h2 style='color:red;margin-top:50px;'>Access Denied</h2>";
 }
 
-let servers = JSON.parse(localStorage.getItem('servers') || '[]');
+// Functions
 const serverList = document.getElementById('server-list');
 
-function renderServers(){
-    serverList.innerHTML='';
-    servers.forEach((s,i)=>{
-        const div = document.createElement('div');
-        div.className='server';
-        div.innerHTML = `<img src="${s.img}" alt="${s.name}"><h3>${s.name}</h3><p>Status: <span>${s.status||"Offline"}</span></p><button class="status-btn">Toggle Status</button>`;
-        const btn = div.querySelector('.status-btn');
-        const statusSpan = div.querySelector('span');
-        btn.addEventListener('click', ()=>{
-            s.status = s.status==="Online"?"Offline":"Online";
-            statusSpan.textContent = s.status;
-            localStorage.setItem('servers', JSON.stringify(servers));
+function renderServers() {
+    serverList.innerHTML = "";
+    db.collection('servers').get().then(snapshot=>{
+        snapshot.forEach(doc=>{
+            const s = doc.data();
+            const div = document.createElement('div');
+            div.className = 'server';
+            const statusColor = s.status==='Online'?'blue':'red';
+            div.innerHTML = `
+                <h4>${s.name}</h4>
+                <div style="color:${statusColor};">Status: ${s.status}</div>
+                <button onclick="toggleStatus('${doc.id}', '${s.status}')">Toggle Status</button>
+            `;
+            serverList.appendChild(div);
         });
-        serverList.appendChild(div);
     });
+}
+
+function toggleStatus(id, currentStatus){
+    const newStatus = currentStatus === 'Online' ? 'Offline' : 'Online';
+    db.collection('servers').doc(id).update({status: newStatus})
+    .then(()=>{alert('Status updated!'); renderServers();});
 }
 
 renderServers();
 </script>
+
 </body>
 </html>
