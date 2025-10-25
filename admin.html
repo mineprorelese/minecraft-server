@@ -129,20 +129,39 @@ textarea { height: 60px; }
 <div class="activity-log" id="activityLog"><h3>Activity Log</h3></div>
 
 <script>
-const password="0021";
-if(prompt("Enter admin password:")!==password){document.body.innerHTML="<h2 style='color:red;margin-top:50px;'>Access Denied</h2>";}
+const API_URL = "https://api.npoint.io/92f9eb9cee57ecd2ba23"; // Your JSON storage API
+const password = "0021";
+if (prompt("Enter admin password:") !== password) {
+    document.body.innerHTML = "<h2 style='color:red;margin-top:50px;'>Access Denied</h2>";
+}
 
-let servers=JSON.parse(localStorage.getItem('servers')||'[]');
-const serverList=document.getElementById('server-list');
-const searchInput=document.getElementById('searchInput');
+let servers = [];
+const serverList = document.getElementById('server-list');
+const searchInput = document.getElementById('searchInput');
 
-function renderServers(filter=""){
-    serverList.innerHTML="";
-    servers.filter(s=>s.name.toLowerCase().includes(filter.toLowerCase())).forEach((s,i)=>{
-        const div=document.createElement('div'); 
-        div.className='server';
-        const statusColor = s.status==='Online' ? 'blue' : 'red';
-        div.innerHTML=`
+// Fetch data from API
+async function loadServers() {
+    const res = await fetch(API_URL);
+    servers = await res.json();
+    renderServers();
+}
+
+// Save data to API
+async function saveServers() {
+    await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(servers)
+    });
+}
+
+function renderServers(filter = "") {
+    serverList.innerHTML = "";
+    servers.filter(s => s.name.toLowerCase().includes(filter.toLowerCase())).forEach((s, i) => {
+        const div = document.createElement('div');
+        div.className = 'server';
+        const statusColor = s.status === 'Online' ? 'blue' : 'red';
+        div.innerHTML = `
             <h4>${s.name}</h4>
             <div style="color:${statusColor}; font-weight:bold;">Status: ${s.status}</div>
             <img src="${s.img}">
@@ -160,42 +179,53 @@ function renderServers(filter=""){
         serverList.appendChild(div);
     });
 }
-function addServer(){
-    const name=document.getElementById('newName').value;
-    const addr=document.getElementById('newAddr').value;
-    const port=document.getElementById('newPort').value;
-    const verType=document.getElementById('newVerType').value;
-    const status=document.getElementById('newStatus').value;
-    const version=document.getElementById('newVersion').value;
-    const desc=document.getElementById('newDesc').value;
-    const fileInput=document.getElementById('newImgFile');
-    if(!name||!addr||!verType||!status||!version||!desc||fileInput.files.length===0){alert('Please fill all fields and choose an image');return;}
-    const reader=new FileReader();
-    reader.onload=function(e){
-        servers.push({name, addr, port, verType, status, version, desc, img:e.target.result});
-        localStorage.setItem('servers',JSON.stringify(servers));
+
+function addServer() {
+    const name = document.getElementById('newName').value;
+    const addr = document.getElementById('newAddr').value;
+    const port = document.getElementById('newPort').value;
+    const verType = document.getElementById('newVerType').value;
+    const status = document.getElementById('newStatus').value;
+    const version = document.getElementById('newVersion').value;
+    const desc = document.getElementById('newDesc').value;
+    const fileInput = document.getElementById('newImgFile');
+    if (!name || !addr || !verType || !status || !version || !desc || fileInput.files.length === 0) {
+        alert('Please fill all fields and choose an image');
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = async function (e) {
+        servers.push({ name, addr, port, verType, status, version, desc, img: e.target.result });
+        await saveServers();
         renderServers(searchInput.value);
         alert('Server added!');
-        document.getElementById('newName').value='';
-        document.getElementById('newAddr').value='';
-        document.getElementById('newPort').value='';
-        document.getElementById('newVerType').value='';
-        document.getElementById('newStatus').value='Online';
-        document.getElementById('newVersion').value='';
-        document.getElementById('newDesc').value='';
-        document.getElementById('newImgFile').value='';
+        document.querySelectorAll('.add-server input, .add-server textarea, .add-server select').forEach(el => el.value = '');
     };
     reader.readAsDataURL(fileInput.files[0]);
 }
 
-function copyAddr(i){navigator.clipboard.writeText(servers[i].addr+(servers[i].port?':'+servers[i].port:''));alert('Address copied');}
-function toggleStatus(i){servers[i].status=servers[i].status==='Online'?'Offline':'Online';localStorage.setItem('servers',JSON.stringify(servers));renderServers(searchInput.value);}
-function openPage(url){window.location.href=url;}
-function saveNotes(){localStorage.setItem('adminNotes',document.getElementById('adminNotes').value);alert('Notes saved!');}
-document.getElementById('adminNotes').value=localStorage.getItem('adminNotes')||'';
+function copyAddr(i) {
+    navigator.clipboard.writeText(servers[i].addr + (servers[i].port ? ':' + servers[i].port : ''));
+    alert('Address copied');
+}
 
-searchInput.addEventListener('input',()=>renderServers(searchInput.value));
-renderServers();
+async function toggleStatus(i) {
+    servers[i].status = servers[i].status === 'Online' ? 'Offline' : 'Online';
+    await saveServers();
+    renderServers(searchInput.value);
+}
+
+function openPage(url) { window.location.href = url; }
+
+function saveNotes() {
+    localStorage.setItem('adminNotes', document.getElementById('adminNotes').value);
+    alert('Notes saved!');
+}
+
+document.getElementById('adminNotes').value = localStorage.getItem('adminNotes') || '';
+searchInput.addEventListener('input', () => renderServers(searchInput.value));
+
+loadServers();
 
 // Matrix background animation
 const canvas = document.getElementById('bgCanvas');
@@ -207,20 +237,20 @@ const fontSize = 14;
 const columns = Math.floor(canvas.width / fontSize);
 const drops = Array(columns).fill(1);
 
-function drawMatrix(){
+function drawMatrix() {
     ctx.fillStyle = "rgba(0,0,0,0.05)";
-    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "#00ff00";
     ctx.font = fontSize + "px monospace";
-    for(let i=0;i<drops.length;i++){
-        const text = letters.charAt(Math.floor(Math.random()*letters.length));
-        ctx.fillText(text, i*fontSize, drops[i]*fontSize);
+    for (let i = 0; i < drops.length; i++) {
+        const text = letters.charAt(Math.floor(Math.random() * letters.length));
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
         drops[i]++;
-        if(drops[i]*fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
     }
 }
 setInterval(drawMatrix, 50);
-window.addEventListener('resize', () => {canvas.width = window.innerWidth; canvas.height = window.innerHeight;});
+window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
 </script>
 
 </body>
