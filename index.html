@@ -2,64 +2,43 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>OMAN SERVERS</title>
+<title>OMAN SERVERS by Alhadhrami</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
-body {
-    font-family: 'Press Start 2P', cursive;
-    margin:0;
-    background:black;
-    color:#00ff00;
-    text-align:center;
-    overflow-x:hidden;
-}
-canvas#bgCanvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
-}
-header {
-    background-color: #111;
-    border-bottom: 2px solid #00ff00;
-    padding: 20px 0;
-}
-header h1 { font-size: 28px; margin: 0; color:#00ff00; text-shadow: 0 0 5px #00ff00; }
-main { padding: 20px; max-width: 900px; margin: auto; }
-.nav-btn {
-    display:block;
-    margin: 20px auto;
-    padding: 15px 30px;
-    font-size:14px;
-    border-radius:8px;
-    border:2px solid #00ff00;
-    background:black;
-    color:#00ff00;
-    cursor:pointer;
-    text-decoration:none;
-    transition: all 0.2s;
-}
-.nav-btn:hover {
-    background:#00ff00;
-    color:black;
-    box-shadow:0 0 10px #00ff00;
-}
+body {font-family: 'Press Start 2P', cursive; margin:0; background:black; color:#00ff00; text-align:center; overflow-x:hidden;}
+canvas#bgCanvas {position: fixed; top:0; left:0; width:100%; height:100%; z-index:-1;}
+header {background:#111; border-bottom:2px solid #00ff00; padding:20px 0;}
+header h1 {font-size:28px; margin:0; color:#00ff00; text-shadow:0 0 5px #00ff00;}
+main {padding:20px; max-width:900px; margin:auto;}
+.nav-btn {display:block; margin:20px auto; padding:15px 30px; font-size:14px; border-radius:8px; border:2px solid #00ff00; background:black; color:#00ff00; cursor:pointer; text-decoration:none; transition: all 0.2s;}
+.nav-btn:hover {background:#00ff00; color:black; box-shadow:0 0 10px #00ff00;}
 </style>
 </head>
 <body>
-
 <canvas id="bgCanvas"></canvas>
 
-<header>
-<h1>OMAN SERVERS by Alhadhrami</h1>
-</header>
+<header><h1>OMAN SERVERS by Alhadhrami</h1></header>
 
 <main>
 <a href="servers.html" class="nav-btn">View Servers</a>
 <a href="comments.html" class="nav-btn">Suggestions / Comments</a>
 </main>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyD_LtDCU_fI1LazKYuuFBHf4tC_pzHAiCw",
+  authDomain: "omanwebsite-ae60c.firebaseapp.com",
+  projectId: "omanwebsite-ae60c",
+  storageBucket: "omanwebsite-ae60c.firebasestorage.app",
+  messagingSenderId: "554330436845",
+  appId: "1:554330436845:web:5e9e90857410848ee488e4"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+</script>
 
 <script>
 // Matrix background animation
@@ -85,7 +64,7 @@ function drawMatrix(){
     }
 }
 setInterval(drawMatrix,50);
-window.addEventListener('resize',()=>{canvas.width=window.innerWidth;canvas.height=window.innerHeight;});
+window.addEventListener('resize',()=>{canvas.width=window.innerWidth; canvas.height=window.innerHeight;});
 </script>
 
 </body>
