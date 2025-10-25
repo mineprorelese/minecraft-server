@@ -2,104 +2,77 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Edit Servers (Hidden)</title>
+<title>Edit Server - MineServer Network</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
-body {
-  font-family: 'Press Start 2P', cursive;
-  background: black;
-  color: #00ffff;
-  text-align: center;
-}
-.server {
-  border: 1px solid #00ffff;
-  width: 70%;
-  margin: 15px auto;
-  padding: 10px;
-  background: #001010;
-}
-input, textarea, select {
-  background: black;
-  color: #00ffff;
-  border: 1px solid #00ffff;
-  padding: 5px;
-  width: 80%;
-  margin: 5px auto;
-  display: block;
-}
-button {
-  background: #00ffff;
-  color: black;
-  border: none;
-  padding: 6px 12px;
-  cursor: pointer;
-  margin: 5px;
-}
-button:hover { box-shadow: 0 0 10px #00ffff; }
+body { font-family:'Press Start 2P',cursive; background:black; color:#00ff00; text-align:center; }
+select,input,textarea,button { background:black; color:#00ff00; border:1px solid #00ff00;
+border-radius:5px; margin:6px auto; padding:8px; display:block; width:60%; }
+button { background:#00ff00; color:black; cursor:pointer; font-weight:bold; }
+button:hover { opacity:0.8; }
 </style>
 </head>
 <body>
-<h2>Edit Servers</h2>
-<div id="list">Loading...</div>
+
+<h2>Edit Server</h2>
+<div id="content" style="display:none;">
+<select id="serverSelect"></select>
+
+<label>Server Name</label><input id="name">
+<label>Address</label><input id="addr">
+<label>Port</label><input id="port">
+<label>Type</label><select id="verType"><option>Java</option><option>Bedrock</option></select>
+<label>Status</label><select id="status"><option>Online</option><option>Offline</option></select>
+<label>Version</label><input id="version">
+<label>Description</label><textarea id="desc"></textarea>
+<label>New Picture</label><input type="file" id="img" accept="image/*">
+<button onclick="updateServer()">Save Changes</button>
+</div>
 
 <script>
-const API_URL = "https://api.npoint.io/92f9eb9cee57ecd2ba23";
-let servers = [];
+const API_URL="https://api.npoint.io/92f9eb9cee57ecd2ba23";
+const password="0021";
+if(prompt("Enter admin password:")!==password){
+ document.body.innerHTML="<h2 style='color:red;margin-top:50px;'>Access Denied</h2>";
+}else document.getElementById("content").style.display="block";
 
+let servers=[];
 async function loadServers(){
-  const res = await fetch(API_URL);
-  servers = await res.json();
-  renderServers();
+ const r=await fetch(API_URL); servers=await r.json();
+ const sel=document.getElementById("serverSelect");
+ sel.innerHTML=servers.map((s,i)=>`<option value="${i}">${s.name}</option>`).join("");
+ fillForm(0);
+ sel.onchange=()=>fillForm(sel.value);
 }
-
-function renderServers(){
-  const list = document.getElementById('list');
-  list.innerHTML = '';
-  servers.forEach((s,i)=>{
-    const div = document.createElement('div');
-    div.className = 'server';
-    div.innerHTML = `
-      <h4>${s.name}</h4>
-      <input value="${s.name}" id="name${i}">
-      <input value="${s.addr}" id="addr${i}">
-      <input value="${s.port}" id="port${i}">
-      <select id="verType${i}">
-        <option ${s.verType==='Java'?'selected':''}>Java</option>
-        <option ${s.verType==='Bedrock'?'selected':''}>Bedrock</option>
-      </select>
-      <select id="status${i}">
-        <option ${s.status==='Online'?'selected':''}>Online</option>
-        <option ${s.status==='Offline'?'selected':''}>Offline</option>
-      </select>
-      <input value="${s.version}" id="version${i}">
-      <textarea id="desc${i}">${s.desc}</textarea>
-      <button onclick="saveEdit(${i})">Save</button>
-    `;
-    list.appendChild(div);
-  });
+function fillForm(i){
+ const s=servers[i];
+ nameInput.value=s.name; addrInput.value=s.addr; portInput.value=s.port;
+ verTypeInput.value=s.verType; statusInput.value=s.status;
+ versionInput.value=s.version; descInput.value=s.desc;
 }
-
-async function saveEdit(i){
-  servers[i] = {
-    ...servers[i],
-    name: document.getElementById('name'+i).value,
-    addr: document.getElementById('addr'+i).value,
-    port: document.getElementById('port'+i).value,
-    verType: document.getElementById('verType'+i).value,
-    status: document.getElementById('status'+i).value,
-    version: document.getElementById('version'+i).value,
-    desc: document.getElementById('desc'+i).value
-  };
-  await fetch(API_URL,{
-    method:"PUT",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify(servers)
-  });
-  alert("Saved!");
-  loadServers();
+async function saveServers(){
+ await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(servers)});
 }
-
+async function updateServer(){
+ const i=serverSelect.value, file=imgInput.files[0];
+ const s=servers[i];
+ s.name=nameInput.value; s.addr=addrInput.value; s.port=portInput.value;
+ s.verType=verTypeInput.value; s.status=statusInput.value;
+ s.version=versionInput.value; s.desc=descInput.value;
+ if(file){const r=new FileReader();r.onload=async e=>{s.img=e.target.result;await saveServers();alert("Updated!");};r.readAsDataURL(file);}
+ else {await saveServers();alert("Updated!");}
+}
+const serverSelect=document.getElementById("serverSelect");
+const nameInput=document.getElementById("name");
+const addrInput=document.getElementById("addr");
+const portInput=document.getElementById("port");
+const verTypeInput=document.getElementById("verType");
+const statusInput=document.getElementById("status");
+const versionInput=document.getElementById("version");
+const descInput=document.getElementById("desc");
+const imgInput=document.getElementById("img");
 loadServers();
 </script>
+
 </body>
 </html>
