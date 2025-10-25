@@ -2,225 +2,227 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Admin Panel - MineServer Network</title>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Control Panel</title>
 <style>
 body {
-    font-family: 'Press Start 2P', cursive;
-    margin: 0;
-    background: black;
-    color: #00ff00;
-    text-align: center;
-    overflow-x: hidden;
+  background: black;
+  color: #00ff00;
+  font-family: 'Courier New', monospace;
+  text-align: center;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
 }
-canvas#bgCanvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
+h1 {
+  color: #00ff00;
+  text-shadow: 0 0 10px #00ff00;
+  margin-top: 20px;
 }
-header {
-    background-color: #111;
-    border-bottom: 2px solid #00ff00;
-    padding: 20px 0;
+button {
+  background: transparent;
+  color: #00ff00;
+  border: 1px solid #00ff00;
+  padding: 8px 15px;
+  margin: 5px;
+  cursor: pointer;
+  transition: 0.3s;
 }
-header h1 { font-size: 22px; margin: 0; }
-main { padding: 20px; max-width: 900px; margin: auto; }
-input, select, textarea, button {
-    font-family: 'Press Start 2P', cursive;
-    margin: 5px 0;
-    padding: 8px;
-    border-radius: 5px;
-    border: 1px solid #00ff00;
-    background: black;
-    color: #00ff00;
-    display: block;
-    width: 60%;
-    margin-left: auto;
-    margin-right: auto;
+button:hover {
+  background: #00ff00;
+  color: black;
+  box-shadow: 0 0 10px #00ff00;
 }
-button { cursor: pointer; background: #00ff00; color: black; font-weight: bold; }
-button:hover { opacity: 0.8; }
-.server-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-top: 20px; }
+input, select, textarea {
+  background: black;
+  color: #00ff00;
+  border: 1px solid #00ff00;
+  padding: 8px;
+  width: 80%;
+  margin: 5px 0;
+  text-align: center;
+}
+textarea {
+  resize: none;
+}
 .server {
-    background: rgba(0,0,0,0.85);
-    border: 2px solid #00ff00;
-    padding: 10px;
-    border-radius: 8px;
-    width: 250px;
-    text-align: center;
+  border: 1px solid #00ff00;
+  padding: 10px;
+  border-radius: 10px;
+  margin: 10px auto;
+  width: 80%;
+  box-shadow: 0 0 10px #00ff00;
+  background: rgba(0, 0, 0, 0.8);
 }
-.server img { width: 100px; height: 100px; object-fit: cover; margin-bottom: 5px; }
-.stats, .activity-log, .admin-message, .quick-links { 
-    border: 2px solid #00ff00; 
-    border-radius: 8px; 
-    padding: 10px; 
-    margin: 20px auto; 
-    max-width: 600px;
+.server img {
+  width: 100px;
+  height: 100px;
+  border-radius: 10px;
+  border: 1px solid #00ff00;
 }
-textarea { height: 60px; }
+#matrix {
+  position: fixed;
+  top: 0; left: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  background: black;
+  overflow: hidden;
+}
+canvas {
+  display: block;
+}
 </style>
 </head>
 <body>
 
-<canvas id="bgCanvas"></canvas>
+<canvas id="matrix"></canvas>
 
-<header><h1>Admin Panel</h1></header>
-
-<main>
-<input type="text" id="searchInput" placeholder="Search servers by name...">
+<h1>Admin Control Panel</h1>
 
 <div class="add-server">
-<h3>Add New Server</h3>
-
-<label>Server Name</label>
-<input type="text" id="newName" placeholder="Enter server name">
-
-<label>Address</label>
-<input type="text" id="newAddr" placeholder="Enter server address">
-
-<label>Port</label>
-<input type="text" id="newPort" placeholder="Optional port">
-
-<label>Type</label>
-<select id="newVerType">
-<option value="">Select type</option>
-<option value="Java">Java</option>
-<option value="Bedrock">Bedrock</option>
-</select>
-
-<label>Status</label>
-<select id="newStatus">
-<option value="Online">Online</option>
-<option value="Offline">Offline</option>
-</select>
-
-<label>Version</label>
-<input type="text" id="newVersion" placeholder="Server version">
-
-<label>Description</label>
-<textarea id="newDesc" placeholder="Enter server description"></textarea>
-
-<label>Server Picture</label>
-<input type="file" id="newImgFile" accept="image/*">
-
-<button onclick="addServer()">Add Server</button>
+  <h3>Add New Server</h3>
+  <input type="text" id="newName" placeholder="Enter server name"><br>
+  <input type="text" id="newAddr" placeholder="Enter server address"><br>
+  <input type="text" id="newPort" placeholder="Optional port"><br>
+  <select id="newVerType">
+    <option value="">Select Type</option>
+    <option value="Java">Java</option>
+    <option value="Bedrock">Bedrock</option>
+  </select><br>
+  <select id="newStatus">
+    <option value="Online">Online</option>
+    <option value="Offline">Offline</option>
+  </select><br>
+  <input type="text" id="newVersion" placeholder="Server version"><br>
+  <textarea id="newDesc" placeholder="Server description"></textarea><br>
+  <label>Server Image:</label><br>
+  <input type="file" id="newImg" accept="image/*"><br>
+  <button onclick="addServer()">Add Server</button>
 </div>
 
-<div class="server-list" id="server-list"></div>
+<hr style="width: 60%; border-color: #00ff00; margin: 30px auto;">
 
-<div class="stats" id="stats"></div>
-
-<div class="quick-links">
-<h3>Quick Links</h3>
-<button onclick="openPage('editserver.html')">Edit Server</button>
-<button onclick="openPage('removeserver.html')">Remove Server</button>
-<button onclick="openPage('setstatus.html')">Set Status</button>
-</div>
-
-<div class="admin-message">
-<h3>Admin Notes</h3>
-<textarea id="adminNotes" placeholder="Write notes..." style="height:80px;"></textarea>
-<button onclick="saveNotes()">Save Notes</button>
-</div>
-
-<div class="activity-log" id="activityLog"><h3>Activity Log</h3></div>
+<div id="serverList"></div>
 
 <script>
-const password="0021";
-if(prompt("Enter admin password:")!==password){document.body.innerHTML="<h2 style='color:red;margin-top:50px;'>Access Denied</h2>";}
+const API_URL = "https://api.npoint.io/92f9eb9cee57ecd2ba23";
+let servers = [];
 
-let servers=JSON.parse(localStorage.getItem('servers')||'[]');
-const serverList=document.getElementById('server-list');
-const searchInput=document.getElementById('searchInput');
-
-function renderServers(filter=""){
-    serverList.innerHTML="";
-    servers.filter(s=>s.name.toLowerCase().includes(filter.toLowerCase())).forEach((s,i)=>{
-        const div=document.createElement('div'); 
-        div.className='server';
-        const statusColor = s.status==='Online' ? 'blue' : 'red';
-        div.innerHTML=`
-            <h4>${s.name}</h4>
-            <div style="color:${statusColor}; font-weight:bold;">Status: ${s.status}</div>
-            <img src="${s.img}">
-            <input value="${s.addr}">
-            <input value="${s.port}">
-            <select>
-                <option ${s.verType==='Java'?'selected':''}>Java</option>
-                <option ${s.verType==='Bedrock'?'selected':''}>Bedrock</option>
-            </select>
-            <input value="${s.version}">
-            <textarea>${s.desc}</textarea>
-            <button onclick="copyAddr(${i})">Copy Address</button>
-            <button onclick="toggleStatus(${i})">Toggle Status</button>
-        `;
-        serverList.appendChild(div);
-    });
+async function loadServers() {
+  const res = await fetch(API_URL);
+  servers = await res.json();
+  renderServers();
 }
-function addServer(){
-    const name=document.getElementById('newName').value;
-    const addr=document.getElementById('newAddr').value;
-    const port=document.getElementById('newPort').value;
-    const verType=document.getElementById('newVerType').value;
-    const status=document.getElementById('newStatus').value;
-    const version=document.getElementById('newVersion').value;
-    const desc=document.getElementById('newDesc').value;
-    const fileInput=document.getElementById('newImgFile');
-    if(!name||!addr||!verType||!status||!version||!desc||fileInput.files.length===0){alert('Please fill all fields and choose an image');return;}
-    const reader=new FileReader();
-    reader.onload=function(e){
-        servers.push({name, addr, port, verType, status, version, desc, img:e.target.result});
-        localStorage.setItem('servers',JSON.stringify(servers));
-        renderServers(searchInput.value);
-        alert('Server added!');
-        document.getElementById('newName').value='';
-        document.getElementById('newAddr').value='';
-        document.getElementById('newPort').value='';
-        document.getElementById('newVerType').value='';
-        document.getElementById('newStatus').value='Online';
-        document.getElementById('newVersion').value='';
-        document.getElementById('newDesc').value='';
-        document.getElementById('newImgFile').value='';
+
+async function saveServers() {
+  await fetch(API_URL, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(servers)
+  });
+}
+
+function renderServers() {
+  const list = document.getElementById("serverList");
+  list.innerHTML = '';
+  servers.forEach((s, i) => {
+    const statusColor = s.status === 'Online' ? '#00bfff' : '#ff3333';
+    const div = document.createElement('div');
+    div.className = 'server';
+    div.innerHTML = `
+      <h4>${s.name}</h4>
+      <div style="color:${statusColor}; font-weight:bold;">${s.status}</div>
+      <img src="${s.img || ''}" alt="Server Image">
+      <p><b>Address:</b> ${s.addr}${s.port ? ':' + s.port : ''}</p>
+      <p><b>Version:</b> ${s.version || ''}</p>
+      <p><b>Type:</b> ${s.verType}</p>
+      <p><b>Description:</b> ${s.desc}</p>
+      <button onclick="toggleStatus(${i})">Toggle Status</button>
+      <button onclick="editServer(${i})">Edit</button>
+      <button onclick="removeServer(${i})">Remove</button>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function addServer() {
+  const name = document.getElementById('newName').value;
+  const addr = document.getElementById('newAddr').value;
+  const port = document.getElementById('newPort').value;
+  const verType = document.getElementById('newVerType').value;
+  const status = document.getElementById('newStatus').value;
+  const version = document.getElementById('newVersion').value;
+  const desc = document.getElementById('newDesc').value;
+  const imgInput = document.getElementById('newImg');
+
+  if (!name || !addr || !verType) {
+    alert("Please fill required fields.");
+    return;
+  }
+
+  if (imgInput.files && imgInput.files[0]) {
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+      const img = e.target.result;
+      servers.push({ name, addr, port, verType, status, version, desc, img });
+      await saveServers();
+      renderServers();
+      alert("Server added!");
     };
-    reader.readAsDataURL(fileInput.files[0]);
+    reader.readAsDataURL(imgInput.files[0]);
+  } else {
+    servers.push({ name, addr, port, verType, status, version, desc, img: '' });
+    saveServers();
+    renderServers();
+  }
 }
 
-function copyAddr(i){navigator.clipboard.writeText(servers[i].addr+(servers[i].port?':'+servers[i].port:''));alert('Address copied');}
-function toggleStatus(i){servers[i].status=servers[i].status==='Online'?'Offline':'Online';localStorage.setItem('servers',JSON.stringify(servers));renderServers(searchInput.value);}
-function openPage(url){window.location.href=url;}
-function saveNotes(){localStorage.setItem('adminNotes',document.getElementById('adminNotes').value);alert('Notes saved!');}
-document.getElementById('adminNotes').value=localStorage.getItem('adminNotes')||'';
+function toggleStatus(i) {
+  servers[i].status = servers[i].status === 'Online' ? 'Offline' : 'Online';
+  saveServers();
+  renderServers();
+}
 
-searchInput.addEventListener('input',()=>renderServers(searchInput.value));
-renderServers();
+function removeServer(i) {
+  if (confirm(`Remove ${servers[i].name}?`)) {
+    servers.splice(i, 1);
+    saveServers();
+    renderServers();
+  }
+}
+
+function editServer(i) {
+  const s = servers[i];
+  const name = prompt("Edit name:", s.name);
+  if (name === null) return;
+  s.name = name;
+  const desc = prompt("Edit description:", s.desc);
+  if (desc !== null) s.desc = desc;
+  saveServers();
+  renderServers();
+}
+
+loadServers();
 
 // Matrix background animation
-const canvas = document.getElementById('bgCanvas');
+const canvas = document.getElementById('matrix');
 const ctx = canvas.getContext('2d');
-canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
-const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()";
-const fontSize = 14;
-const columns = Math.floor(canvas.width / fontSize);
-const drops = Array(columns).fill(1);
-
-function drawMatrix(){
-    ctx.fillStyle = "rgba(0,0,0,0.05)";
-    ctx.fillRect(0,0,canvas.width,canvas.height);
-    ctx.fillStyle = "#00ff00";
-    ctx.font = fontSize + "px monospace";
-    for(let i=0;i<drops.length;i++){
-        const text = letters.charAt(Math.floor(Math.random()*letters.length));
-        ctx.fillText(text, i*fontSize, drops[i]*fontSize);
-        drops[i]++;
-        if(drops[i]*fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
-    }
+canvas.width = window.innerWidth;
+const letters = Array(256).join("1").split("");
+function drawMatrix() {
+  ctx.fillStyle = "rgba(0,0,0,0.05)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#00ff00";
+  letters.map((y, index) => {
+    const text = String.fromCharCode(3e4 + Math.random() * 33);
+    const x = index * 10;
+    ctx.fillText(text, x, y);
+    letters[index] = y > 758 + Math.random() * 1e4 ? 0 : y + 10;
+  });
 }
-setInterval(drawMatrix, 50);
-window.addEventListener('resize', () => {canvas.width = window.innerWidth; canvas.height = window.innerHeight;});
+setInterval(drawMatrix, 33);
 </script>
 
 </body>
