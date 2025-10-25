@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Admin Panel - OMAN Servers</title>
+<title>Admin Panel - Oman Servers</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
 body {
@@ -53,7 +53,7 @@ button:hover { opacity: 0.8; }
     text-align: center;
 }
 .server img { width: 100px; height: 100px; object-fit: cover; margin-bottom: 5px; }
-.stats, .activity-log, .admin-message, .quick-links, .suggestions { 
+.stats, .activity-log, .admin-message, .quick-links { 
     border: 2px solid #00ff00; 
     border-radius: 8px; 
     padding: 10px; 
@@ -61,6 +61,14 @@ button:hover { opacity: 0.8; }
     max-width: 600px;
 }
 textarea { height: 60px; }
+.comment-card { 
+    border: 1px solid #00ff00; 
+    padding: 5px; 
+    margin: 5px 0; 
+    border-radius: 5px; 
+    text-align: left; 
+    background: rgba(0,0,0,0.7);
+}
 </style>
 </head>
 <body>
@@ -128,17 +136,23 @@ textarea { height: 60px; }
 
 <div class="activity-log" id="activityLog"><h3>Activity Log</h3></div>
 
-<!-- Suggestions Section -->
-<div class="suggestions">
-<h3>User Suggestions / Comments</h3>
-<div id="suggestionsList"></div>
+<!-- Comments Admin Section -->
+<div class="comments-admin" style="border:2px solid #00ff00; border-radius:8px; padding:10px; margin:20px auto; max-width:600px;">
+  <h3>User Comments / Suggestions</h3>
+  <div id="adminCommentsList"></div>
+  <button onclick="fetchAdminComments()">Refresh Comments</button>
+  <button onclick="clearAllComments()" style="margin-left:10px;">Clear All Comments</button>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
 <script>
-// Firebase config
+const password="0021";
+if(prompt("Enter admin password:")!==password){
+    document.body.innerHTML="<h2 style='color:red;margin-top:50px;'>Access Denied</h2>";
+}
+
+// Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyD_LtDCU_fI1LazKYuuFBHf4tC_pzHAiCw",
   authDomain: "omanwebsite-ae60c.firebaseapp.com",
@@ -151,15 +165,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-const password="0021";
-if(prompt("Enter admin password:")!==password){document.body.innerHTML="<h2 style='color:red;margin-top:50px;'>Access Denied</h2>";}
-
-let servers=[];
-db.collection('servers').get().then(snapshot=>{
-    servers=snapshot.docs.map(d=>({id:d.id,...d.data()}));
-    renderServers();
-});
-
+let servers=JSON.parse(localStorage.getItem('servers')||'[]');
 const serverList=document.getElementById('server-list');
 const searchInput=document.getElementById('searchInput');
 
@@ -200,30 +206,30 @@ function addServer(){
     if(!name||!addr||!verType||!status||!version||!desc||fileInput.files.length===0){alert('Please fill all fields and choose an image');return;}
     const reader=new FileReader();
     reader.onload=function(e){
-        db.collection('servers').add({name, addr, port, verType, status, version, desc, img:e.target.result}).then(docRef=>{
-            servers.push({id:docRef.id,name,addr,port,verType,status,version,desc,img:e.target.result});
-            renderServers(searchInput.value);
-            alert('Server added!');
-            document.getElementById('newName').value='';
-            document.getElementById('newAddr').value='';
-            document.getElementById('newPort').value='';
-            document.getElementById('newVerType').value='';
-            document.getElementById('newStatus').value='Online';
-            document.getElementById('newVersion').value='';
-            document.getElementById('newDesc').value='';
-            document.getElementById('newImgFile').value='';
-        });
+        servers.push({name, addr, port, verType, status, version, desc, img:e.target.result});
+        localStorage.setItem('servers',JSON.stringify(servers));
+        renderServers(searchInput.value);
+        alert('Server added!');
+        document.getElementById('newName').value='';
+        document.getElementById('newAddr').value='';
+        document.getElementById('newPort').value='';
+        document.getElementById('newVerType').value='';
+        document.getElementById('newStatus').value='Online';
+        document.getElementById('newVersion').value='';
+        document.getElementById('newDesc').value='';
+        document.getElementById('newImgFile').value='';
     };
     reader.readAsDataURL(fileInput.files[0]);
 }
 
 function copyAddr(i){navigator.clipboard.writeText(servers[i].addr+(servers[i].port?':'+servers[i].port:''));alert('Address copied');}
-function toggleStatus(i){servers[i].status=servers[i].status==='Online'?'Offline':'Online';db.collection('servers').doc(servers[i].id).update({status:servers[i].status});renderServers(searchInput.value);}
+function toggleStatus(i){servers[i].status=servers[i].status==='Online'?'Offline':'Online';localStorage.setItem('servers',JSON.stringify(servers));renderServers(searchInput.value);}
 function openPage(url){window.location.href=url;}
 function saveNotes(){localStorage.setItem('adminNotes',document.getElementById('adminNotes').value);alert('Notes saved!');}
 document.getElementById('adminNotes').value=localStorage.getItem('adminNotes')||'';
 
 searchInput.addEventListener('input',()=>renderServers(searchInput.value));
+renderServers();
 
 // Matrix background animation
 const canvas = document.getElementById('bgCanvas');
@@ -250,37 +256,36 @@ function drawMatrix(){
 setInterval(drawMatrix, 50);
 window.addEventListener('resize', () => {canvas.width = window.innerWidth; canvas.height = window.innerHeight;});
 
-// Suggestions management
-function fetchSuggestions(){
-    db.collection('suggestions').get().then(snapshot=>{
-        const container = document.getElementById('suggestionsList');
-        container.innerHTML = '';
-        snapshot.forEach(doc=>{
-            const s = doc.data();
-            const div = document.createElement('div');
-            div.style.border = "1px solid #00ff00";
-            div.style.padding = "5px";
-            div.style.margin = "5px 0";
-            div.style.background = "rgba(0,0,0,0.7)";
-            div.style.textAlign = "center";
-            div.innerHTML = `
-                <b>${s.username || 'Anonymous'}:</b> ${s.comment}
-                <br>
-                <button onclick="removeSuggestion('${doc.id}')">Remove</button>
-            `;
-            container.appendChild(div);
-        });
-    });
+// ------------------- Comments Admin Functions -------------------
+function fetchAdminComments() {
+  const container = document.getElementById('adminCommentsList');
+  container.innerHTML = '';
+  db.collection('comments').orderBy('timestamp','asc').get().then(snapshot=>{
+      snapshot.forEach(doc=>{
+          const c = doc.data();
+          const div = document.createElement('div');
+          div.className = 'comment-card';
+          div.innerHTML = `
+            <b>${c.username || 'Anonymous'}:</b> ${c.comment} 
+            <button onclick="deleteComment('${doc.id}')">Delete</button>
+          `;
+          container.appendChild(div);
+      });
+  });
 }
-
-function removeSuggestion(id){
-    if(confirm('Remove this suggestion?')){
-        db.collection('suggestions').doc(id).delete().then(()=>fetchSuggestions());
+function deleteComment(id){
+    if(confirm('Are you sure you want to delete this comment?')){
+        db.collection('comments').doc(id).delete().then(()=>fetchAdminComments());
     }
 }
-
-// Initial fetch
-fetchSuggestions();
+function clearAllComments(){
+    if(confirm('Are you sure you want to delete all comments?')){
+        db.collection('comments').get().then(snapshot=>{
+            snapshot.forEach(doc=>doc.ref.delete());
+        }).then(()=>fetchAdminComments());
+    }
+}
+fetchAdminComments();
 </script>
 
 </body>
