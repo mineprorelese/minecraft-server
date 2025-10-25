@@ -58,7 +58,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyD_LtDCU_fI1LazKYuuFBHf4tC_pzHAiCw",
   authDomain: "omanwebsite-ae60c.firebaseapp.com",
   projectId: "omanwebsite-ae60c",
-  storageBucket: "omanwebsite-ae60c.firebasestorage.app",
+  storageBucket: "omanwebsite-ae60c.appspot.com",
   messagingSenderId: "554330436845",
   appId: "1:554330436845:web:5e9e90857410848ee488e4"
 };
@@ -79,10 +79,21 @@ function addServer(){
     const desc=document.getElementById('desc').value;
     const fileInput=document.getElementById('imgFile');
     if(!name||!addr||!verType||!status||!version||!desc||fileInput.files.length===0){alert('Please fill all fields and choose an image');return;}
+    
     const reader=new FileReader();
     reader.onload=function(e){
-        db.collection('servers').add({name, addr, port, verType, status, version, desc, img:e.target.result})
-        .then(()=>{alert('Server added!');document.getElementById('name').value='';document.getElementById('addr').value='';document.getElementById('port').value='';document.getElementById('verType').value='';document.getElementById('status').value='Online';document.getElementById('version').value='';document.getElementById('desc').value='';document.getElementById('imgFile').value='';});
+        const imgData=e.target.result;
+        db.collection('servers').add({name, addr, port, verType, status, version, desc, img:imgData})
+        .then(()=>{alert('Server added!'); 
+            document.getElementById('name').value='';
+            document.getElementById('addr').value='';
+            document.getElementById('port').value='';
+            document.getElementById('verType').value='';
+            document.getElementById('status').value='Online';
+            document.getElementById('version').value='';
+            document.getElementById('desc').value='';
+            document.getElementById('imgFile').value='';
+        });
     };
     reader.readAsDataURL(fileInput.files[0]);
 }
