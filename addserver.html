@@ -2,71 +2,76 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Add Server - MineServer Network</title>
+<title>Add Server (Hidden)</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
-body { font-family: 'Press Start 2P', cursive; background:black; color:#00ff00; text-align:center; }
-input, select, textarea, button {
-    background:black; color:#00ff00; border:1px solid #00ff00;
-    border-radius:5px; margin:6px auto; padding:8px; display:block; width:60%;
-}
-button { background:#00ff00; color:black; cursor:pointer; font-weight:bold; }
-button:hover { opacity:0.8; }
+body { font-family: 'Press Start 2P', cursive; margin:0; background:black; color:#00ff00; text-align:center; }
+main { margin-top:50px; }
+input, textarea, select, button { display:block; margin:10px auto; padding:10px; width:60%; border:none; border-radius:5px; font-family:inherit; font-size:10px; background:black; color:#00ff00; border:1px solid #00ff00; }
+button { background:#00ff00; color:black; cursor:pointer; }
+button:hover{ opacity:0.8; }
 </style>
 </head>
 <body>
 
+<main>
 <h2>Add New Server</h2>
+<form id="serverForm">
+<input type="password" id="pass" placeholder="Enter admin password" required>
+<input type="text" id="name" placeholder="Server Name" required>
+<input type="text" id="addr" placeholder="Server Address" required>
+<input type="text" id="port" placeholder="Port (Optional)">
+<select id="verType" required>
+<option value="">Select Version Type</option>
+<option value="Java">Java</option>
+<option value="Bedrock">Bedrock</option>
+</select>
+<select id="status" required>
+<option value="Online">Online</option>
+<option value="Offline">Offline</option>
+</select>
+<input type="text" id="version" placeholder="Server Version" required>
+<textarea id="desc" placeholder="Server Description" required></textarea>
+<label>Server Picture</label>
+<input type="file" id="imgFile" accept="image/*" required>
+<button type="submit">Add Server</button>
+</form>
+</main>
 
-<div id="content" style="display:none;">
-    <label>Server Name</label><input id="name" placeholder="Enter name">
-    <label>Address</label><input id="addr" placeholder="Enter address">
-    <label>Port</label><input id="port" placeholder="Optional port">
-    <label>Type</label>
-    <select id="verType"><option>Java</option><option>Bedrock</option></select>
-    <label>Status</label>
-    <select id="status"><option>Online</option><option>Offline</option></select>
-    <label>Version</label><input id="version" placeholder="Server version">
-    <label>Description</label><textarea id="desc" placeholder="Description"></textarea>
-    <label>Server Image</label><input type="file" id="img" accept="image/*">
-    <button onclick="addServer()">Add Server</button>
-</div>
-
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
-const API_URL = "https://api.npoint.io/92f9eb9cee57ecd2ba23";
-const password = "0021";
-if (prompt("Enter admin password:") !== password) {
-  document.body.innerHTML = "<h2 style='color:red;margin-top:50px;'>Access Denied</h2>";
-} else {
-  document.getElementById("content").style.display = "block";
-}
+const firebaseConfig = {
+  apiKey: "AIzaSyD_LtDCU_fI1LazKYuuFBHf4tC_pzHAiCw",
+  authDomain: "omanwebsite-ae60c.firebaseapp.com",
+  projectId: "omanwebsite-ae60c",
+  storageBucket: "omanwebsite-ae60c.firebasestorage.app",
+  messagingSenderId: "554330436845",
+  appId: "1:554330436845:web:5e9e90857410848ee488e4"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const password="0021";
 
-let servers = [];
-async function loadServers(){ const r=await fetch(API_URL); servers=await r.json(); }
-async function saveServers(){ await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(servers)}); }
-
-async function addServer(){
-  await loadServers();
-  const name=nameInput.value, addr=addrInput.value, port=portInput.value,
-        verType=verTypeInput.value, status=statusInput.value,
-        version=versionInput.value, desc=descInput.value, file=imgInput.files[0];
-  if(!name||!addr||!verType||!status||!version||!desc||!file){alert("Please fill all fields");return;}
-  const reader=new FileReader();
-  reader.onload=async e=>{
-    servers.push({name,addr,port,verType,status,version,desc,img:e.target.result});
-    await saveServers(); alert("Server Added!");
-    document.querySelectorAll("input,textarea,select").forEach(el=>el.value="");
-  };
-  reader.readAsDataURL(file);
-}
-const nameInput=document.getElementById("name");
-const addrInput=document.getElementById("addr");
-const portInput=document.getElementById("port");
-const verTypeInput=document.getElementById("verType");
-const statusInput=document.getElementById("status");
-const versionInput=document.getElementById("version");
-const descInput=document.getElementById("desc");
-const imgInput=document.getElementById("img");
+document.getElementById('serverForm').addEventListener('submit', e=>{
+    e.preventDefault();
+    if(document.getElementById('pass').value!==password){alert('Wrong password!');return;}
+    const name=document.getElementById('name').value;
+    const addr=document.getElementById('addr').value;
+    const port=document.getElementById('port').value;
+    const verType=document.getElementById('verType').value;
+    const status=document.getElementById('status').value;
+    const version=document.getElementById('version').value;
+    const desc=document.getElementById('desc').value;
+    const fileInput=document.getElementById('imgFile');
+    if(fileInput.files.length===0){alert('Choose an image'); return;}
+    const reader=new FileReader();
+    reader.onload=function(e){
+        db.collection('servers').add({name,addr,port,verType,status,version,desc,img:e.target.result})
+        .then(()=>{alert('Server added!'); document.getElementById('serverForm').reset();});
+    };
+    reader.readAsDataURL(fileInput.files[0]);
+});
 </script>
 
 </body>
