@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>User Comments - Oman Servers</title>
+<title>Comments - Oman Servers</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
 body {
@@ -11,23 +11,21 @@ body {
     color: #00ff00;
     text-align: center;
     margin: 0;
-    overflow-x: hidden;
-}
-canvas#bgCanvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
 }
 header {
     background-color: #111;
     border-bottom: 2px solid #00ff00;
     padding: 20px 0;
 }
-header h1 { font-size: 22px; margin: 0; }
-main { padding: 20px; max-width: 900px; margin: auto; }
+header h1 {
+    font-size: 22px;
+    margin: 0;
+}
+main {
+    padding: 20px;
+    max-width: 900px;
+    margin: auto;
+}
 .comment-card {
     border: 1px solid #00ff00;
     padding: 10px;
@@ -36,18 +34,24 @@ main { padding: 20px; max-width: 900px; margin: auto; }
     border-radius: 8px;
     text-align: center;
 }
-.comment-card b { color: #00ff00; }
+.comment-card b {
+    color: #00ff00;
+}
 </style>
 </head>
 <body>
 
-<canvas id="bgCanvas"></canvas>
-
-<header><h1>User Comments / Suggestions</h1></header>
+<header>
+    <h1>User Comments / Suggestions</h1>
+</header>
 
 <main>
-<div id="commentsList"></div>
-<p style="font-size:10px; color:#666;">Shortcut: Alt + D to delete the last comment</p>
+    <div class="comment-card">
+        <b>Anonymous:</b> This is an example comment.
+    </div>
+    <div class="comment-card">
+        <b>User123:</b> Another example suggestion.
+    </div>
 </main>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -66,34 +70,9 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// Matrix background animation
-const canvas = document.getElementById('bgCanvas');
-const ctx = canvas.getContext('2d');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()";
-const fontSize = 14;
-const columns = Math.floor(canvas.width / fontSize);
-const drops = Array(columns).fill(1);
-
-function drawMatrix(){
-    ctx.fillStyle = "rgba(0,0,0,0.05)";
-    ctx.fillRect(0,0,canvas.width,canvas.height);
-    ctx.fillStyle = "#00ff00";
-    ctx.font = fontSize + "px monospace";
-    for(let i=0;i<drops.length;i++){
-        const text = letters.charAt(Math.floor(Math.random()*letters.length));
-        ctx.fillText(text, i*fontSize, drops[i]*fontSize);
-        drops[i]++;
-        if(drops[i]*fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
-    }
-}
-setInterval(drawMatrix, 50);
-window.addEventListener('resize', () => {canvas.width = window.innerWidth; canvas.height = window.innerHeight;});
-
 // Fetch and display comments
 function fetchComments(){
-    const container = document.getElementById('commentsList');
+    const container = document.querySelector('main');
     container.innerHTML = '';
     db.collection('comments').orderBy('timestamp','asc').get().then(snapshot=>{
         snapshot.forEach(doc=>{
@@ -106,7 +85,7 @@ function fetchComments(){
     });
 }
 
-// Delete last comment (Alt + D)
+// Delete last comment function
 function deleteLastComment(){
     db.collection('comments').orderBy('timestamp','desc').limit(1).get().then(snapshot=>{
         snapshot.forEach(doc=>{
@@ -114,6 +93,8 @@ function deleteLastComment(){
         });
     });
 }
+
+// Hidden keyboard shortcut: Alt + D
 document.addEventListener('keydown', function(e){
     if(e.altKey && e.key.toLowerCase() === 'd'){
         if(confirm('Delete the last comment?')){
@@ -122,7 +103,6 @@ document.addEventListener('keydown', function(e){
     }
 });
 
-// Initial fetch
 fetchComments();
 </script>
 
