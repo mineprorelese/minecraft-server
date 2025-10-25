@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Admin Panel - MineServer Network</title>
+<title>Admin Panel - OMAN SERVERS</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
 body {
@@ -21,11 +21,7 @@ canvas#bgCanvas {
     height: 100%;
     z-index: -1;
 }
-header {
-    background-color: #111;
-    border-bottom: 2px solid #00ff00;
-    padding: 20px 0;
-}
+header { background-color: #111; border-bottom: 2px solid #00ff00; padding: 20px 0; }
 header h1 { font-size: 22px; margin: 0; }
 main { padding: 20px; max-width: 900px; margin: auto; }
 input, select, textarea, button {
@@ -128,50 +124,48 @@ textarea { height: 60px; }
 
 <div class="activity-log" id="activityLog"><h3>Activity Log</h3></div>
 
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
-const API_URL = "https://api.npoint.io/92f9eb9cee57ecd2ba23"; // Your JSON storage API
-const password = "0021";
-if (prompt("Enter admin password:") !== password) {
-    document.body.innerHTML = "<h2 style='color:red;margin-top:50px;'>Access Denied</h2>";
+const password="0021";
+if(prompt("Enter admin password:")!==password){
+    document.body.innerHTML="<h2 style='color:red;margin-top:50px;'>Access Denied</h2>";
 }
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD_LtDCU_fI1LazKYuuFBHf4tC_pzHAiCw",
+  authDomain: "omanwebsite-ae60c.firebaseapp.com",
+  projectId: "omanwebsite-ae60c",
+  storageBucket: "omanwebsite-ae60c.firebasestorage.app",
+  messagingSenderId: "554330436845",
+  appId: "1:554330436845:web:5e9e90857410848ee488e4",
+  measurementId: "G-6HBLKC0N5L"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
 let servers = [];
-const serverList = document.getElementById('server-list');
-const searchInput = document.getElementById('searchInput');
+const serverList=document.getElementById('server-list');
+const searchInput=document.getElementById('searchInput');
 
-// Fetch data from API
-async function loadServers() {
-    const res = await fetch(API_URL);
-    servers = await res.json();
-    renderServers();
-}
-
-// Save data to API
-async function saveServers() {
-    await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(servers)
-    });
-}
-
-function renderServers(filter = "") {
-    serverList.innerHTML = "";
-    servers.filter(s => s.name.toLowerCase().includes(filter.toLowerCase())).forEach((s, i) => {
-        const div = document.createElement('div');
-        div.className = 'server';
-        const statusColor = s.status === 'Online' ? 'blue' : 'red';
-        div.innerHTML = `
+function renderServers(filter=""){
+    serverList.innerHTML="";
+    servers.filter(s=>s.name.toLowerCase().includes(filter.toLowerCase())).forEach((s,i)=>{
+        const div=document.createElement('div'); 
+        div.className='server';
+        const statusColor = s.status==='Online' ? 'blue' : 'red';
+        div.innerHTML=`
             <h4>${s.name}</h4>
             <div style="color:${statusColor}; font-weight:bold;">Status: ${s.status}</div>
             <img src="${s.img}">
-            <input value="${s.addr}">
-            <input value="${s.port}">
+            <input value="${s.addr}" placeholder="Address">
+            <input value="${s.port}" placeholder="Port">
             <select>
                 <option ${s.verType==='Java'?'selected':''}>Java</option>
                 <option ${s.verType==='Bedrock'?'selected':''}>Bedrock</option>
             </select>
-            <input value="${s.version}">
+            <input value="${s.version}" placeholder="Version">
             <textarea>${s.desc}</textarea>
             <button onclick="copyAddr(${i})">Copy Address</button>
             <button onclick="toggleStatus(${i})">Toggle Status</button>
@@ -180,78 +174,76 @@ function renderServers(filter = "") {
     });
 }
 
-function addServer() {
-    const name = document.getElementById('newName').value;
-    const addr = document.getElementById('newAddr').value;
-    const port = document.getElementById('newPort').value;
-    const verType = document.getElementById('newVerType').value;
-    const status = document.getElementById('newStatus').value;
-    const version = document.getElementById('newVersion').value;
-    const desc = document.getElementById('newDesc').value;
-    const fileInput = document.getElementById('newImgFile');
-    if (!name || !addr || !verType || !status || !version || !desc || fileInput.files.length === 0) {
+// Fetch servers from Firebase
+db.collection("servers").orderBy("name").onSnapshot(snapshot=>{
+    servers = snapshot.docs.map(doc=>doc.data());
+    renderServers(searchInput.value);
+});
+
+function addServer(){
+    const name=document.getElementById('newName').value;
+    const addr=document.getElementById('newAddr').value;
+    const port=document.getElementById('newPort').value;
+    const verType=document.getElementById('newVerType').value;
+    const status=document.getElementById('newStatus').value;
+    const version=document.getElementById('newVersion').value;
+    const desc=document.getElementById('newDesc').value;
+    const fileInput=document.getElementById('newImgFile');
+    if(!name||!addr||!verType||!status||!version||!desc||fileInput.files.length===0){
         alert('Please fill all fields and choose an image');
         return;
     }
-    const reader = new FileReader();
-    reader.onload = async function (e) {
-        servers.push({ name, addr, port, verType, status, version, desc, img: e.target.result });
-        await saveServers();
-        renderServers(searchInput.value);
-        alert('Server added!');
-        document.querySelectorAll('.add-server input, .add-server textarea, .add-server select').forEach(el => el.value = '');
+    const reader=new FileReader();
+    reader.onload=function(e){
+        db.collection("servers").add({name,addr,port,verType,status,version,desc,img:e.target.result})
+        .then(()=>{alert('Server added!'); renderServers(searchInput.value);
+            document.getElementById('newName').value='';
+            document.getElementById('newAddr').value='';
+            document.getElementById('newPort').value='';
+            document.getElementById('newVerType').value='';
+            document.getElementById('newStatus').value='Online';
+            document.getElementById('newVersion').value='';
+            document.getElementById('newDesc').value='';
+            document.getElementById('newImgFile').value='';
+        });
     };
     reader.readAsDataURL(fileInput.files[0]);
 }
 
-function copyAddr(i) {
-    navigator.clipboard.writeText(servers[i].addr + (servers[i].port ? ':' + servers[i].port : ''));
-    alert('Address copied');
+function copyAddr(i){navigator.clipboard.writeText(servers[i].addr+(servers[i].port?':'+servers[i].port:''));alert('Address copied');}
+function toggleStatus(i){
+    const doc = db.collection("servers").doc(Object.keys(servers)[i]);
+    const newStatus = servers[i].status==='Online'?'Offline':'Online';
+    db.collection("servers").doc(snapshot.docs[i].id).update({status:newStatus});
 }
+function openPage(url){window.location.href=url;}
+function saveNotes(){db.collection("admin").doc('notes').set({text:document.getElementById('adminNotes').value});alert('Notes saved!');}
 
-async function toggleStatus(i) {
-    servers[i].status = servers[i].status === 'Online' ? 'Offline' : 'Online';
-    await saveServers();
-    renderServers(searchInput.value);
-}
-
-function openPage(url) { window.location.href = url; }
-
-function saveNotes() {
-    localStorage.setItem('adminNotes', document.getElementById('adminNotes').value);
-    alert('Notes saved!');
-}
-
-document.getElementById('adminNotes').value = localStorage.getItem('adminNotes') || '';
-searchInput.addEventListener('input', () => renderServers(searchInput.value));
-
-loadServers();
+searchInput.addEventListener('input',()=>renderServers(searchInput.value));
+renderServers();
 
 // Matrix background animation
 const canvas = document.getElementById('bgCanvas');
 const ctx = canvas.getContext('2d');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+canvas.width = window.innerWidth; canvas.height = window.innerHeight;
 const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()";
 const fontSize = 14;
 const columns = Math.floor(canvas.width / fontSize);
 const drops = Array(columns).fill(1);
-
-function drawMatrix() {
+function drawMatrix(){
     ctx.fillStyle = "rgba(0,0,0,0.05)";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0,0,canvas.width,canvas.height);
     ctx.fillStyle = "#00ff00";
-    ctx.font = fontSize + "px monospace";
-    for (let i = 0; i < drops.length; i++) {
-        const text = letters.charAt(Math.floor(Math.random() * letters.length));
-        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+    ctx.font = fontSize+"px monospace";
+    for(let i=0;i<drops.length;i++){
+        const text = letters.charAt(Math.floor(Math.random()*letters.length));
+        ctx.fillText(text,i*fontSize,drops[i]*fontSize);
         drops[i]++;
-        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+        if(drops[i]*fontSize>canvas.height && Math.random()>0.975)drops[i]=0;
     }
 }
-setInterval(drawMatrix, 50);
-window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
+setInterval(drawMatrix,50);
+window.addEventListener('resize',()=>{canvas.width=window.innerWidth; canvas.height=window.innerHeight;});
 </script>
-
 </body>
 </html>
