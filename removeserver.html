@@ -2,72 +2,68 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Remove Server - MineServer Network</title>
+<title>Remove Server (Hidden)</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
-body{ font-family:'Press Start 2P', cursive; background:#222 url('https://i.imgur.com/fZ0oZqP.png') repeat; background-size:64px; color:#fff; margin:0; }
-header{ background:#d32f2f; padding:15px 20px; display:flex; justify-content:space-between; align-items:center; }
-header h1{ font-size:20px; margin:0; }
-nav a{ color:#fff; margin:0 10px; text-decoration:none; font-size:12px; }
-nav a:hover{text-decoration:underline;}
-main{ padding:20px; display:flex; flex-direction:column; align-items:center; min-height:80vh; }
-h2{ font-size:16px; margin-bottom:20px; }
-#server-list{ display:flex; flex-wrap:wrap; gap:20px; justify-content:center; width:100%; max-width:1200px; }
-.server{ background:rgba(50,0,0,0.85); width:250px; padding:15px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.5); text-align:center; transition:0.2s; }
-.server:hover{ transform:translateY(-5px); box-shadow:0 8px 20px rgba(0,0,0,0.7); }
-.server img{ width:100px; height:100px; object-fit:cover; border-radius:10px; margin-bottom:10px; }
-.server p{ font-size:14px; word-break:break-word; }
-button.remove-btn{ background:#d32f2f; color:#fff; border:none; border-radius:5px; padding:5px 10px; cursor:pointer; font-size:12px; }
-button.remove-btn:hover{ background:#f44336; }
-footer{ background:#111; color:#aaa; padding:10px; text-align:center; font-size:10px; width:100%; margin-top:20px; }
-@media(max-width:600px){ .server{ width:90%; } }
+body {
+  font-family: 'Press Start 2P', cursive;
+  background: black;
+  color: #ff3333;
+  text-align: center;
+}
+button {
+  background: #ff3333;
+  color: black;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  margin: 5px;
+}
+.server {
+  border: 1px solid #ff3333;
+  width: 70%;
+  margin: 15px auto;
+  padding: 10px;
+  background: #100;
+}
 </style>
 </head>
 <body>
-
-<header>
-<h1>MineServer Network - Remove Server</h1>
-<nav><a href="index.html">Home</a><a href="servers.html">Servers</a></nav>
-</header>
-
-<main>
-<h2>Click Remove to delete a server</h2>
-<div id="server-list"></div>
-</main>
-
-<footer>© 2025 MineServer Network</footer>
+<h2>Remove Servers</h2>
+<div id="list">Loading...</div>
 
 <script>
-const password="0021";
-if(prompt("Enter password:")!==password){ 
-    alert("Access Denied"); 
-    document.body.innerHTML="<h2 style='color:red;margin-top:50px;'>Access Denied</h2>"; 
+const API_URL = "https://api.npoint.io/92f9eb9cee57ecd2ba23";
+async function loadServers(){
+  const res = await fetch(API_URL);
+  const servers = await res.json();
+  const list = document.getElementById('list');
+  list.innerHTML = '';
+  servers.forEach((s,i)=>{
+    const div = document.createElement('div');
+    div.className='server';
+    div.innerHTML = `
+      <h4>${s.name}</h4>
+      <p>${s.addr}</p>
+      <button onclick="removeServer(${i})">Remove</button>
+    `;
+    list.appendChild(div);
+  });
 }
-
-let servers = JSON.parse(localStorage.getItem('servers') || '[]');
-const serverList = document.getElementById('server-list');
-
-function renderServers(){
-    serverList.innerHTML='';
-    servers.forEach((s,i)=>{
-        const div = document.createElement('div');
-        div.className = 'server';
-        div.innerHTML = `<img src="${s.img}" alt="${s.name}"><h3>${s.name}</h3><p>${s.addr}${s.port?':'+s.port:''}</p><button class="remove-btn">Remove</button>`;
-        const btn = div.querySelector('.remove-btn');
-        btn.addEventListener('click', ()=>{
-            document.body.style.background = 'rgba(0,0,0,0.5) url("https://i.imgur.com/fZ0oZqP.png") repeat';
-            if(confirm(`Remove ${s.name}?`)){
-                servers.splice(i,1);
-                localStorage.setItem('servers', JSON.stringify(servers));
-                renderServers();
-            }
-            document.body.style.background = '#222 url("https://i.imgur.com/fZ0oZqP.png") repeat';
-        });
-        serverList.appendChild(div);
-    });
+async function removeServer(i){
+  if(!confirm('Remove this server?'))return;
+  const res = await fetch(API_URL);
+  const servers = await res.json();
+  servers.splice(i,1);
+  await fetch(API_URL,{
+    method:"PUT",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(servers)
+  });
+  alert("Removed!");
+  loadServers();
 }
-
-renderServers();
+loadServers();
 </script>
 </body>
 </html>
