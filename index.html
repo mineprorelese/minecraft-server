@@ -6,44 +6,67 @@
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
 body {
+    margin:0;
     font-family: 'Press Start 2P', cursive;
-    margin: 0;
-    background: black;
-    color: #00ff00;
+    background: #000;
+    color: #00ffcc;
     text-align: center;
     overflow-x: hidden;
 }
 canvas#bgCanvas {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
+    top:0; left:0;
+    width:100%;
+    height:100%;
+    z-index:-1;
 }
 header {
-    background-color: #111;
-    border-bottom: 2px solid #00ff00;
-    padding: 20px 0;
+    padding: 30px 0 10px 0;
 }
-header h1 { font-size: 28px; margin: 0; }
-header h2 { font-size: 14px; margin: 5px 0 0 0; font-weight: normal; }
-main { padding: 20px; max-width: 900px; margin: auto; }
-button { 
-    cursor: pointer; 
-    background: #00ff00; 
-    color: black; 
-    font-weight: bold; 
-    border:1px solid #00ff00; 
-    border-radius:5px; 
-    margin:10px auto; 
-    padding:8px; 
-    display:block; 
-    width:60%; 
+header h1 {
+    font-size: 32px;
+    color: #00ffcc;
+    text-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffcc;
 }
-a { color: #00ff00; text-decoration: none; }
-a:hover { text-decoration: underline; }
-img.block { width:100px; margin-top:20px; }
+header h2 {
+    font-size: 14px;
+    color: #00ffcc;
+    font-weight: normal;
+}
+main {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-top: 100px;
+}
+button {
+    cursor: pointer;
+    background: black;
+    color: #00ffcc;
+    border: 2px solid #00ffcc;
+    border-radius: 10px;
+    padding: 15px 40px;
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 20px;
+    text-transform: uppercase;
+    box-shadow: 0 0 10px #00ffcc;
+    transition: all 0.3s ease-in-out;
+}
+button:hover {
+    box-shadow: 0 0 20px #00ffcc, 0 0 40px #00ffcc inset;
+    transform: scale(1.05);
+}
+footer {
+    position: fixed;
+    bottom:0;
+    width:100%;
+    padding:10px 0;
+    background: #111;
+    color: #00ffcc;
+    font-size: 12px;
+}
 </style>
 </head>
 <body>
@@ -56,47 +79,44 @@ img.block { width:100px; margin-top:20px; }
 </header>
 
 <main>
-    <img src="https://static.wikia.nocookie.net/minecraft_gamepedia/images/2/23/Grass_Block_JE3_BE3.png" class="block" alt="Minecraft Block">
     <button onclick="window.location.href='servers.html'">View Servers</button>
 </main>
 
-<footer>
-    <p>© 2025 OMAN SERVERS</p>
-</footer>
+<footer>© 2025 OMAN SERVERS</footer>
 
 <script>
 // Ctrl + A shortcut to go to admin.html
-document.addEventListener('keydown', function(e) {
-    if(e.ctrlKey && e.key.toLowerCase() === 'a') {
+document.addEventListener('keydown', function(e){
+    if(e.ctrlKey && e.key.toLowerCase() === 'a'){
         window.location.href = "admin.html";
         e.preventDefault();
     }
 });
 
-// Matrix background animation
+// Subtle Matrix-style background
 const canvas = document.getElementById('bgCanvas');
 const ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
-const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()";
-const fontSize = 14;
-const columns = Math.floor(canvas.width / fontSize);
-const drops = Array(columns).fill(1);
 
-function drawMatrix(){
+const cols = Math.floor(canvas.width / 20);
+const drops = Array(cols).fill(1);
+const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()";
+
+function draw(){
     ctx.fillStyle = "rgba(0,0,0,0.05)";
     ctx.fillRect(0,0,canvas.width,canvas.height);
-    ctx.fillStyle = "#00ff00";
-    ctx.font = fontSize + "px monospace";
-    for(let i=0;i<drops.length;i++){
+    ctx.fillStyle = "#00ffcc";
+    ctx.font = "16px monospace";
+    for(let i=0; i<drops.length; i++){
         const text = letters.charAt(Math.floor(Math.random()*letters.length));
-        ctx.fillText(text, i*fontSize, drops[i]*fontSize);
+        ctx.fillText(text, i*20, drops[i]*20);
         drops[i]++;
-        if(drops[i]*fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+        if(drops[i]*20 > canvas.height && Math.random() > 0.975) drops[i] = 0;
     }
 }
-setInterval(drawMatrix, 50);
-window.addEventListener('resize', () => {canvas.width = window.innerWidth; canvas.height = window.innerHeight;});
+setInterval(draw, 50);
+window.addEventListener('resize', ()=>{canvas.width = window.innerWidth; canvas.height = window.innerHeight;});
 </script>
 
 </body>
