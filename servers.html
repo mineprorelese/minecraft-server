@@ -19,6 +19,16 @@ header {
 }
 header h1 { margin: 0; font-size: 22px; }
 main { padding: 20px; max-width: 1200px; margin: auto; }
+#searchInput {
+    width: 80%;
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #00ff00;
+    background: black;
+    color: #00ff00;
+    margin-bottom: 20px;
+    font-family: 'Press Start 2P', cursive;
+}
 .server-list { 
     display: flex; 
     flex-wrap: wrap; 
@@ -59,6 +69,8 @@ main { padding: 20px; max-width: 1200px; margin: auto; }
 <header><h1>OMAN SERVERS</h1></header>
 
 <main>
+<input type="text" id="searchInput" placeholder="Search servers by name...">
+
 <div class="server-list" id="server-list"></div>
 </main>
 
@@ -79,12 +91,14 @@ const db = firebase.firestore();
 
 // Render servers
 const serverList = document.getElementById('server-list');
+const searchInput = document.getElementById('searchInput');
 
-function renderServers() {
+function renderServers(filter="") {
     serverList.innerHTML = "";
     db.collection('servers').get().then(snapshot=>{
         snapshot.forEach(doc=>{
             const s = doc.data();
+            if(!s.name.toLowerCase().includes(filter.toLowerCase())) return;
             const statusColor = s.status === 'Online' ? 'blue' : 'red';
             const div = document.createElement('div');
             div.className = 'server';
@@ -108,6 +122,7 @@ function copyAddress(addr, port) {
     alert('Address copied: ' + full);
 }
 
+searchInput.addEventListener('input', ()=>renderServers(searchInput.value));
 renderServers();
 </script>
 
