@@ -30,8 +30,9 @@ main { padding: 20px; max-width: 1200px; margin: auto; }
     border: 2px solid #00ff00;
     border-radius: 10px;
     padding: 15px;
-    width: 400px; /* wider cards */
+    width: 450px; /* wider card for long addresses */
     text-align: center;
+    word-wrap: break-word; /* wrap long addresses */
 }
 .server img { 
     width: 150px; 
@@ -40,7 +41,7 @@ main { padding: 20px; max-width: 1200px; margin: auto; }
     margin-bottom: 10px; 
 }
 .server h3 { margin: 5px 0; }
-.server p { margin: 5px 0; }
+.server p { margin: 5px 0; overflow-wrap: anywhere; }
 .copy-btn {
     margin-top: 8px;
     padding: 5px 10px;
@@ -91,7 +92,7 @@ function renderServers() {
                 <h3>${s.name}</h3>
                 <div style="color:${statusColor}; font-weight:bold;">Status: ${s.status}</div>
                 <img src="${s.img}" alt="${s.name}">
-                <p><b>Address:</b> ${s.addr}${s.port ? ':' + s.port : ''}</p>
+                <p><b>Address:</b> <span style="display:block; word-break: break-all;">${s.addr}${s.port ? ':' + s.port : ''}</span></p>
                 <p><b>Version:</b> ${s.verType || 'Unknown'}</p>
                 <p><b>Description:</b> ${s.desc}</p>
                 <button class="copy-btn" onclick="copyAddress('${s.addr}', '${s.port}')">Copy Address</button>
