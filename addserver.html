@@ -2,40 +2,53 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Add Server (Hidden)</title>
+<title>Add Server - OMAN SERVERS</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
-body { font-family: 'Press Start 2P', cursive; margin:0; background:black; color:#00ff00; text-align:center; }
-main { margin-top:50px; }
-input, textarea, select, button { display:block; margin:10px auto; padding:10px; width:60%; border:none; border-radius:5px; font-family:inherit; font-size:10px; background:black; color:#00ff00; border:1px solid #00ff00; }
-button { background:#00ff00; color:black; cursor:pointer; }
-button:hover{ opacity:0.8; }
+body{font-family:'Press Start 2P',cursive;margin:0;background:black;color:#00ff00;text-align:center;}
+main{padding:20px;max-width:600px;margin:auto;}
+input,select,textarea,button{font-family:'Press Start 2P',cursive;margin:5px 0;padding:8px;border-radius:5px;border:1px solid #00ff00;background:black;color:#00ff00;display:block;width:80%;margin-left:auto;margin-right:auto;}
+button{cursor:pointer;background:#00ff00;color:black;font-weight:bold;}
+button:hover{opacity:0.8;}
 </style>
 </head>
 <body>
 
 <main>
 <h2>Add New Server</h2>
-<form id="serverForm">
-<input type="password" id="pass" placeholder="Enter admin password" required>
-<input type="text" id="name" placeholder="Server Name" required>
-<input type="text" id="addr" placeholder="Server Address" required>
-<input type="text" id="port" placeholder="Port (Optional)">
-<select id="verType" required>
-<option value="">Select Version Type</option>
+
+<label>Server Name</label>
+<input type="text" id="name" placeholder="Enter server name">
+
+<label>Address</label>
+<input type="text" id="addr" placeholder="Enter server address">
+
+<label>Port</label>
+<input type="text" id="port" placeholder="Optional port">
+
+<label>Type</label>
+<select id="verType">
+<option value="">Select type</option>
 <option value="Java">Java</option>
 <option value="Bedrock">Bedrock</option>
 </select>
-<select id="status" required>
+
+<label>Status</label>
+<select id="status">
 <option value="Online">Online</option>
 <option value="Offline">Offline</option>
 </select>
-<input type="text" id="version" placeholder="Server Version" required>
-<textarea id="desc" placeholder="Server Description" required></textarea>
+
+<label>Version</label>
+<input type="text" id="version" placeholder="Server version">
+
+<label>Description</label>
+<textarea id="desc" placeholder="Enter server description"></textarea>
+
 <label>Server Picture</label>
-<input type="file" id="imgFile" accept="image/*" required>
-<button type="submit">Add Server</button>
-</form>
+<input type="file" id="imgFile" accept="image/*">
+
+<button onclick="addServer()">Add Server</button>
 </main>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -51,11 +64,12 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-const password="0021";
 
-document.getElementById('serverForm').addEventListener('submit', e=>{
-    e.preventDefault();
-    if(document.getElementById('pass').value!==password){alert('Wrong password!');return;}
+// Password protection
+const password="0021";
+if(prompt("Enter admin password:")!==password){document.body.innerHTML="<h2 style='color:red;margin-top:50px;'>Access Denied</h2>";}
+
+function addServer(){
     const name=document.getElementById('name').value;
     const addr=document.getElementById('addr').value;
     const port=document.getElementById('port').value;
@@ -64,15 +78,14 @@ document.getElementById('serverForm').addEventListener('submit', e=>{
     const version=document.getElementById('version').value;
     const desc=document.getElementById('desc').value;
     const fileInput=document.getElementById('imgFile');
-    if(fileInput.files.length===0){alert('Choose an image'); return;}
+    if(!name||!addr||!verType||!status||!version||!desc||fileInput.files.length===0){alert('Please fill all fields and choose an image');return;}
     const reader=new FileReader();
     reader.onload=function(e){
-        db.collection('servers').add({name,addr,port,verType,status,version,desc,img:e.target.result})
-        .then(()=>{alert('Server added!'); document.getElementById('serverForm').reset();});
+        db.collection('servers').add({name, addr, port, verType, status, version, desc, img:e.target.result})
+        .then(()=>{alert('Server added!');document.getElementById('name').value='';document.getElementById('addr').value='';document.getElementById('port').value='';document.getElementById('verType').value='';document.getElementById('status').value='Online';document.getElementById('version').value='';document.getElementById('desc').value='';document.getElementById('imgFile').value='';});
     };
     reader.readAsDataURL(fileInput.files[0]);
-});
+}
 </script>
-
 </body>
 </html>
