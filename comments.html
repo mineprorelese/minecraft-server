@@ -3,61 +3,61 @@
 <head>
 <meta charset="UTF-8">
 <title>Comments - Oman Servers</title>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
 body {
-    font-family: 'Press Start 2P', cursive;
-    background: black;
-    color: #00ff00;
+    font-family: Arial, sans-serif;
+    background: #000;
+    color: #0f0;
     text-align: center;
     margin: 0;
+    padding: 0;
 }
 header {
-    background-color: #111;
-    border-bottom: 2px solid #00ff00;
+    background: #111;
     padding: 20px 0;
 }
-header h1 {
-    font-size: 22px;
-    margin: 0;
-}
-main {
-    padding: 20px;
-    max-width: 900px;
-    margin: auto;
-}
+h1 { margin: 0; }
+main { padding: 20px; max-width: 600px; margin: auto; }
 .comment-card {
-    border: 1px solid #00ff00;
+    background: #111;
+    border: 1px solid #0f0;
+    border-radius: 6px;
     padding: 10px;
     margin: 10px 0;
-    background: rgba(0,0,0,0.7);
-    border-radius: 8px;
-    text-align: center;
+    text-align: left;
 }
-.comment-card b {
-    color: #00ff00;
+input, textarea, button {
+    display: block;
+    width: 80%;
+    margin: 10px auto;
+    padding: 8px;
+    background: #000;
+    color: #0f0;
+    border: 1px solid #0f0;
+    border-radius: 4px;
 }
+button { cursor: pointer; font-weight: bold; }
+button:hover { opacity: 0.8; }
 </style>
 </head>
 <body>
 
 <header>
-    <h1>User Comments / Suggestions</h1>
+  <h1>User Comments / Suggestions</h1>
 </header>
 
 <main>
-    <div class="comment-card">
-        <b>Anonymous:</b> This is an example comment.
-    </div>
-    <div class="comment-card">
-        <b>User123:</b> Another example suggestion.
-    </div>
+  <div id="commentsList"></div>
+
+  <input type="text" id="username" placeholder="Your name (optional)">
+  <textarea id="commentText" placeholder="Write your comment..."></textarea>
+  <button onclick="addComment()">Post Comment</button>
 </main>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
-// Firebase configuration
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyD_LtDCU_fI1LazKYuuFBHf4tC_pzHAiCw",
   authDomain: "omanwebsite-ae60c.firebaseapp.com",
@@ -70,9 +70,9 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// Fetch and display comments
+// Fetch comments
 function fetchComments(){
-    const container = document.querySelector('main');
+    const container = document.getElementById('commentsList');
     container.innerHTML = '';
     db.collection('comments').orderBy('timestamp','asc').get().then(snapshot=>{
         snapshot.forEach(doc=>{
@@ -85,7 +85,23 @@ function fetchComments(){
     });
 }
 
-// Delete last comment function
+// Add comment
+function addComment(){
+    const username = document.getElementById('username').value || 'Anonymous';
+    const comment = document.getElementById('commentText').value;
+    if(!comment){ alert('Please write a comment!'); return; }
+    db.collection('comments').add({
+        username: username,
+        comment: comment,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(()=>{
+        document.getElementById('username').value = '';
+        document.getElementById('commentText').value = '';
+        fetchComments();
+    });
+}
+
+// Delete last comment (hidden Alt+D)
 function deleteLastComment(){
     db.collection('comments').orderBy('timestamp','desc').limit(1).get().then(snapshot=>{
         snapshot.forEach(doc=>{
@@ -94,7 +110,6 @@ function deleteLastComment(){
     });
 }
 
-// Hidden keyboard shortcut: Alt + D
 document.addEventListener('keydown', function(e){
     if(e.altKey && e.key.toLowerCase() === 'd'){
         if(confirm('Delete the last comment?')){
