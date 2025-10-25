@@ -2,66 +2,169 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Servers - MineServer Network</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
-body{ font-family:'Press Start 2P', cursive; background:#222 url('https://i.imgur.com/fZ0oZqP.png') repeat; background-size:64px; color:#fff; margin:0; text-align:center; }
-header{ background:#2e7d32; padding:15px 0; border-bottom:4px solid #1b5e20; }
-nav a{ color:#fff; margin:0 15px; text-decoration:none; }
-nav a:hover{text-decoration:underline;}
-main{ margin-top:40px; }
-.server{ background:rgba(30,30,30,0.85); margin:25px auto; padding:15px; width:70%; border:3px solid #3a3a3a; border-radius:12px; box-shadow:0 0 10px #000; }
-.server img{ max-width:150px; border-radius:10px; margin-top:10px; }
-.server h3{ margin:5px 0; }
-.server p{ font-size:14px; word-break:break-word; }
-.status{ font-weight:bold; }
-.status.online{ color:#4caf50; }  /* green */
-.status.offline{ color:#f44336; } /* red */
-.copy-btn{ margin-top:5px; padding:5px 10px; border:none; border-radius:5px; cursor:pointer; background:#1976d2; color:#fff; }
-.copy-btn:hover{ background:#2196f3; }
-footer{ background:#111; color:#aaa; padding:10px; position:fixed; bottom:0; width:100%; font-size:10px; }
+body {
+  font-family: 'Press Start 2P', cursive;
+  background: radial-gradient(circle, #001100 0%, #000000 100%);
+  color: #00ff00;
+  margin: 0;
+  text-align: center;
+  min-height: 100vh;
+}
+header {
+  background: #003300;
+  padding: 20px 0;
+  box-shadow: 0 0 15px #00ff00;
+  border-bottom: 3px solid #00aa00;
+}
+header h1 {
+  margin: 0;
+  font-size: 18px;
+  color: #00ff00;
+}
+nav a {
+  color: #00ff00;
+  margin: 0 10px;
+  text-decoration: none;
+  transition: 0.3s;
+}
+nav a:hover {
+  text-shadow: 0 0 10px #00ff00;
+}
+main {
+  margin-top: 40px;
+}
+.server {
+  background: rgba(0, 20, 0, 0.8);
+  border: 1px solid #00ff00;
+  border-radius: 10px;
+  width: 80%;
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 20px;
+  box-shadow: 0 0 15px #00ff00;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+.server:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 30px #00ff00;
+}
+.server img {
+  width: 120px;
+  height: 120px;
+  border-radius: 10px;
+  border: 2px solid #00ff00;
+  margin: 10px 0;
+}
+.copy-btn {
+  background: black;
+  color: #00ff00;
+  border: 1px solid #00ff00;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.copy-btn:hover {
+  background: #00ff00;
+  color: black;
+}
+.status {
+  font-size: 12px;
+  margin: 5px 0;
+  font-weight: bold;
+}
+footer {
+  background: #000;
+  color: #00ff00;
+  font-size: 10px;
+  padding: 10px;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  border-top: 1px solid #00aa00;
+}
 </style>
 </head>
 <body>
+
 <header>
-<h1>Our Minecraft Servers</h1>
-<nav><a href="index.html">Home</a><a href="servers.html">Servers</a></nav>
+  <h1>MineServer Network</h1>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="servers.html">Servers</a>
+  </nav>
 </header>
 
 <main>
-<h2>Server List</h2>
-<div id="server-list"></div>
+  <h2>Server List</h2>
+  <div id="server-list">Loading servers...</div>
 </main>
 
-<footer>© 2025 MineServer Network</footer>
+<footer>
+  <p>© 2025 MineServer Network</p>
+</footer>
 
 <script>
-const servers = JSON.parse(localStorage.getItem('servers') || '[]');
-const list = document.getElementById('server-list');
+const API_URL = "https://api.npoint.io/92f9eb9cee57ecd2ba23";
 
-if(servers.length === 0){
-    list.innerHTML = '<p>No servers added yet.</p>';
-} else {
-    servers.forEach(s => {
-        const div = document.createElement('div');
-        div.className = 'server';
-        div.innerHTML = `
-            <img src="${s.img}" alt="${s.name}">
-            <h3>${s.name}</h3>
-            <p>Version: ${s.version || 'Unknown'} (${s.verType || 'Unknown'})</p>
-            <p>Address: ${s.addr}${s.port ? ':' + s.port : ''}</p>
-            <p class="status ${s.status==='Online'?'online':'offline'}">${s.status || 'Offline'}</p>
-            <button class="copy-btn">Copy Address</button>
-            <p>${s.desc}</p>
-        `;
-        const btn = div.querySelector('.copy-btn');
-        btn.addEventListener('click', ()=>{
-            const addr = `${s.addr}${s.port ? ':' + s.port : ''}`;
-            navigator.clipboard.writeText(addr).then(()=>alert('Address copied!'));
-        });
-        list.appendChild(div);
-    });
+async function loadServers() {
+  try {
+    const res = await fetch(API_URL);
+    const servers = await res.json();
+    displayServers(servers);
+  } catch (e) {
+    document.getElementById('server-list').innerHTML = '<p>Failed to load servers.</p>';
+  }
 }
+
+function displayServers(servers) {
+  const list = document.getElementById('server-list');
+  list.innerHTML = '';
+  
+  if (!servers || servers.length === 0) {
+    list.innerHTML = '<p>No servers available.</p>';
+    return;
+  }
+  
+  servers.forEach(s => {
+    const statusColor = s.status === 'Online' ? '#00bfff' : '#ff3333';
+    const serverDiv = document.createElement('div');
+    serverDiv.className = 'server';
+    serverDiv.innerHTML = `
+      <img src="${s.img || ''}" alt="${s.name}">
+      <h3>${s.name}</h3>
+      <div class="status" style="color:${statusColor};">● ${s.status}</div>
+      <p><b>Version:</b> ${s.version || 'Unknown'}</p>
+      <p><b>Type:</b> ${s.verType || 'N/A'}</p>
+      <p><b>Address:</b> <span id="addr-${s.addr.replace(/[^a-zA-Z0-9]/g, '')}">${s.addr}${s.port ? ':' + s.port : ''}</span></p>
+      <button class="copy-btn" onclick="copyAddress('${s.addr}${s.port ? ':' + s.port : ''}')">Copy Address</button>
+      <p><b>Description:</b><br>${s.desc || 'No description'}</p>
+    `;
+    list.appendChild(serverDiv);
+  });
+}
+
+function copyAddress(addr) {
+  navigator.clipboard.writeText(addr);
+  const msg = document.createElement('div');
+  msg.textContent = `Copied ${addr}`;
+  msg.style.position = 'fixed';
+  msg.style.bottom = '20px';
+  msg.style.left = '50%';
+  msg.style.transform = 'translateX(-50%)';
+  msg.style.background = '#00ff00';
+  msg.style.color = 'black';
+  msg.style.padding = '5px 10px';
+  msg.style.borderRadius = '5px';
+  msg.style.boxShadow = '0 0 10px #00ff00';
+  document.body.appendChild(msg);
+  setTimeout(() => msg.remove(), 1000);
+}
+
+loadServers();
 </script>
 </body>
 </html>
