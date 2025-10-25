@@ -50,5 +50,15 @@ a:hover {
 <a href="servers.html">View Servers</a>
 <a href="comments.html">View Suggestions</a>
 
+<script>
+// Keyboard shortcut: Ctrl + A opens admin.html
+document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.key.toLowerCase() === 'a') {
+        e.preventDefault(); // prevent default select all
+        window.location.href = "admin.html";
+    }
+});
+</script>
+
 </body>
 </html>
