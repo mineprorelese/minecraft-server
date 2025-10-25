@@ -38,7 +38,7 @@ main {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    margin-top: 100px;
+    margin-top: 50px;
 }
 button {
     cursor: pointer;
@@ -58,14 +58,33 @@ button:hover {
     box-shadow: 0 0 20px #00ffcc, 0 0 40px #00ffcc inset;
     transform: scale(1.05);
 }
-footer {
-    position: fixed;
-    bottom:0;
-    width:100%;
-    padding:10px 0;
-    background: #111;
+.feature-section {
+    margin-top: 50px;
+    width: 70%;
+    max-width: 600px;
+    text-align: left;
+    border: 2px solid #00ffcc;
+    border-radius: 10px;
+    padding: 15px;
+    background: rgba(0,0,0,0.85);
+}
+.feature-section h3 { text-align: center; color: #00ffcc; }
+.feature { 
+    border-bottom: 1px solid #00ffcc; 
+    padding: 5px 0; 
+}
+.feature:last-child { border-bottom: none; }
+.feature strong { color: #00ffcc; }
+input, textarea {
+    width: 90%;
+    margin: 5px auto;
+    display: block;
+    background: black;
     color: #00ffcc;
-    font-size: 12px;
+    border: 1px solid #00ffcc;
+    border-radius: 5px;
+    padding: 8px;
+    font-family: 'Press Start 2P', cursive;
 }
 </style>
 </head>
@@ -80,6 +99,15 @@ footer {
 
 <main>
     <button onclick="window.location.href='servers.html'">View Servers</button>
+
+    <!-- Feature Requests Section -->
+    <div class="feature-section">
+        <h3>Feature Requests / Suggestions</h3>
+        <input type="text" id="featureName" placeholder="Enter your name">
+        <textarea id="featureText" placeholder="What feature or update would you like?"></textarea>
+        <button onclick="addFeature()">Submit</button>
+        <div id="featureList"></div>
+    </div>
 </main>
 
 <footer>© 2025 OMAN SERVERS</footer>
@@ -93,12 +121,11 @@ document.addEventListener('keydown', function(e){
     }
 });
 
-// Subtle Matrix-style background
+// Matrix-style background
 const canvas = document.getElementById('bgCanvas');
 const ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
-
 const cols = Math.floor(canvas.width / 20);
 const drops = Array(cols).fill(1);
 const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()";
@@ -117,6 +144,33 @@ function draw(){
 }
 setInterval(draw, 50);
 window.addEventListener('resize', ()=>{canvas.width = window.innerWidth; canvas.height = window.innerHeight;});
+
+// Feature Requests
+let features = JSON.parse(localStorage.getItem('features')||'[]');
+
+function renderFeatures(){
+    const list = document.getElementById('featureList');
+    list.innerHTML = '';
+    features.slice().reverse().forEach(f=>{
+        const div = document.createElement('div');
+        div.className='feature';
+        div.innerHTML = `<strong>${f.name}</strong>: ${f.text}`;
+        list.appendChild(div);
+    });
+}
+
+function addFeature(){
+    const name = document.getElementById('featureName').value.trim();
+    const text = document.getElementById('featureText').value.trim();
+    if(!name || !text){ alert('Please enter your name and suggestion'); return; }
+    features.push({name, text});
+    localStorage.setItem('features', JSON.stringify(features));
+    document.getElementById('featureName').value='';
+    document.getElementById('featureText').value='';
+    renderFeatures();
+}
+
+renderFeatures();
 </script>
 
 </body>
