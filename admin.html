@@ -176,7 +176,7 @@ function renderServers(filter="") {
     serverList.innerHTML = "";
     servers.filter(s => s.name.toLowerCase().includes(filter.toLowerCase())).forEach((s,i) => {
         const div = document.createElement('div'); 
-        div.className = 'server';
+        div.className = 'Server';
         const statusColor = s.status === 'Online' ? 'blue' : 'red';
         div.innerHTML = `
             <h4>${s.name}</h4>
