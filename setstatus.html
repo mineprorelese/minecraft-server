@@ -2,55 +2,24 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Set Server Status (Hidden)</title>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<title>Set Server Status - Admin</title>
 <style>
-body {
-    font-family: 'Press Start 2P', cursive;
-    background: black;
-    color: #00ff00;
-    text-align: center;
-}
-header {
-    background: #111;
-    padding: 20px 0;
-    border-bottom: 2px solid #00ff00;
-}
-header h1 { margin: 0; font-size: 22px; }
-main { padding: 20px; max-width: 900px; margin: auto; }
-button {
-    cursor: pointer;
-    background: #00ff00;
-    color: black;
-    font-weight: bold;
-    border: none;
-    padding: 5px 10px;
-    margin: 5px 0;
-}
-button:hover { opacity: 0.8; }
-.server { 
-    background: rgba(0,0,0,0.85);
-    border: 2px solid #00ff00;
-    border-radius: 8px;
-    padding: 10px;
-    margin: 15px auto;
-    width: 300px;
-    text-align: center;
-}
-.server div { margin-bottom: 5px; font-weight: bold; }
+body { background:black; color:#00ff00; font-family:'Press Start 2P', cursive; text-align:center; }
+button { display:block; margin:10px auto; padding:8px; border-radius:5px; border:1px solid #00ff00; background:#00ff00; color:black; cursor:pointer; width:60%; }
+button:hover { opacity:0.8; }
+.server { border:2px solid #00ff00; padding:10px; margin:15px auto; max-width:450px; background:rgba(0,0,0,0.8); }
+.status { font-weight:bold; margin-bottom:5px; }
 </style>
 </head>
 <body>
 
-<header><h1>Set Server Status</h1></header>
-<main>
-<div id="server-list"></div>
-</main>
+<h2>Set Server Status</h2>
+<div id="serverList"></div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
-// Firebase config
+// Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyD_LtDCU_fI1LazKYuuFBHf4tC_pzHAiCw",
   authDomain: "omanwebsite-ae60c.firebaseapp.com",
@@ -63,39 +32,38 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 // Password protection
-const password = "0021";
-if(prompt("Enter admin password:") !== password){
+const password="0021";
+if(prompt("Enter admin password:")!==password){
     document.body.innerHTML="<h2 style='color:red;margin-top:50px;'>Access Denied</h2>";
 }
 
-// Functions
-const serverList = document.getElementById('server-list');
-
-function renderServers() {
-    serverList.innerHTML = "";
+// Fetch and display servers
+function fetchServers(){
     db.collection('servers').get().then(snapshot=>{
+        const container=document.getElementById('serverList');
+        container.innerHTML='';
         snapshot.forEach(doc=>{
-            const s = doc.data();
-            const div = document.createElement('div');
-            div.className = 'server';
-            const statusColor = s.status==='Online'?'blue':'red';
-            div.innerHTML = `
-                <h4>${s.name}</h4>
-                <div style="color:${statusColor};">Status: ${s.status}</div>
+            const s=doc.data();
+            const div=document.createElement('div');
+            div.className='server';
+            const color = s.status==='Online'?'blue':'red';
+            div.innerHTML=`
+                <h3>${s.name}</h3>
+                <div class="status" style="color:${color}">Status: ${s.status}</div>
                 <button onclick="toggleStatus('${doc.id}', '${s.status}')">Toggle Status</button>
             `;
-            serverList.appendChild(div);
+            container.appendChild(div);
         });
     });
 }
 
+// Toggle server status
 function toggleStatus(id, currentStatus){
-    const newStatus = currentStatus === 'Online' ? 'Offline' : 'Online';
-    db.collection('servers').doc(id).update({status: newStatus})
-    .then(()=>{alert('Status updated!'); renderServers();});
+    const newStatus = currentStatus==='Online'?'Offline':'Online';
+    db.collection('servers').doc(id).update({status:newStatus}).then(()=>fetchServers());
 }
 
-renderServers();
+fetchServers();
 </script>
 
 </body>
