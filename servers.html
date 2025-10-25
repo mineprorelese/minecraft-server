@@ -2,71 +2,112 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>OMAN SERVERS</title>
+<title>Servers - OMAN SERVERS</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
-body {font-family: 'Press Start 2P', cursive; margin:0; background:black; color:#00ff00; text-align:center;}
-header {background:#111; border-bottom:2px solid #00ff00; padding:15px 0;}
-header h1 {margin:0; color:#00ff00;}
-nav a {color:#00ff00; margin:0 15px; text-decoration:none;}
-nav a:hover {text-decoration:underline;}
-main {padding:20px; max-width:1000px; margin:auto;}
-.server-list {display:flex; flex-wrap:wrap; justify-content:center; gap:15px; margin-top:20px;}
-.server {background:rgba(0,0,0,0.85); border:2px solid #00ff00; padding:10px; border-radius:8px; width:250px; text-align:center;}
-.server img {width:100px; height:100px; object-fit:cover; margin-bottom:5px;}
-.status-online {color:blue; font-weight:bold;}
-.status-offline {color:red; font-weight:bold;}
+body {
+    margin: 0;
+    font-family: 'Press Start 2P', cursive;
+    background: #0a0a0a;
+    color: #00ff00;
+    text-align: center;
+}
+header {
+    background: #111;
+    padding: 20px 0;
+    border-bottom: 2px solid #00ff00;
+}
+header h1 { margin: 0; font-size: 22px; }
+main { padding: 20px; max-width: 1200px; margin: auto; }
+.server-list { 
+    display: flex; 
+    flex-wrap: wrap; 
+    justify-content: center; 
+    gap: 20px; 
+}
+.server { 
+    background: rgba(0,0,0,0.85);
+    border: 2px solid #00ff00;
+    border-radius: 10px;
+    padding: 15px;
+    width: 400px; /* wider cards */
+    text-align: center;
+}
+.server img { 
+    width: 150px; 
+    height: 150px; 
+    object-fit: cover; 
+    margin-bottom: 10px; 
+}
+.server h3 { margin: 5px 0; }
+.server p { margin: 5px 0; }
+.copy-btn {
+    margin-top: 8px;
+    padding: 5px 10px;
+    background: #00ff00;
+    color: black;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.copy-btn:hover { background: #00cc00; }
 </style>
 </head>
 <body>
 
-<header>
-<h1>OMAN SERVERS</h1>
-<nav><a href="index.html">Home</a></nav>
-</header>
+<header><h1>OMAN SERVERS</h1></header>
 
 <main>
 <div class="server-list" id="server-list"></div>
 </main>
 
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyD_LtDCU_fI1LazKYuuFBHf4tC_pzHAiCw",
   authDomain: "omanwebsite-ae60c.firebaseapp.com",
   projectId: "omanwebsite-ae60c",
-  storageBucket: "omanwebsite-ae60c.firebasestorage.app",
+  storageBucket: "omanwebsite-ae60c.appspot.com",
   messagingSenderId: "554330436845",
   appId: "1:554330436845:web:5e9e90857410848ee488e4"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+
+// Render servers
 const serverList = document.getElementById('server-list');
 
-function renderServers(snapshot){
-    serverList.innerHTML = '';
-    snapshot.forEach(doc => {
-        const s = doc.data();
-        const div = document.createElement('div');
-        div.className='server';
-        const statusClass = s.status==='Online'?'status-online':'status-offline';
-        div.innerHTML = `
-            <h4>${s.name}</h4>
-            <div class="${statusClass}">Status: ${s.status}</div>
-            <img src="${s.img}">
-            <p>Address: ${s.addr}${s.port?':'+s.port:''}</p>
-            <p>Version: ${s.verType} ${s.version}</p>
-            <p>${s.desc}</p>
-        `;
-        serverList.appendChild(div);
+function renderServers() {
+    serverList.innerHTML = "";
+    db.collection('servers').get().then(snapshot=>{
+        snapshot.forEach(doc=>{
+            const s = doc.data();
+            const statusColor = s.status === 'Online' ? 'blue' : 'red';
+            const div = document.createElement('div');
+            div.className = 'server';
+            div.innerHTML = `
+                <h3>${s.name}</h3>
+                <div style="color:${statusColor}; font-weight:bold;">Status: ${s.status}</div>
+                <img src="${s.img}" alt="${s.name}">
+                <p><b>Address:</b> ${s.addr}${s.port ? ':' + s.port : ''}</p>
+                <p><b>Version:</b> ${s.verType || 'Unknown'}</p>
+                <p><b>Description:</b> ${s.desc}</p>
+                <button class="copy-btn" onclick="copyAddress('${s.addr}', '${s.port}')">Copy Address</button>
+            `;
+            serverList.appendChild(div);
+        });
     });
 }
 
-db.collection('servers').onSnapshot(snapshot=>{
-    renderServers(snapshot);
-});
+function copyAddress(addr, port) {
+    const full = addr + (port ? ':' + port : '');
+    navigator.clipboard.writeText(full);
+    alert('Address copied: ' + full);
+}
+
+renderServers();
 </script>
 
 </body>
